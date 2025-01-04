@@ -14,32 +14,30 @@ async def add_dataframe_pandas(data: list) -> pd.DataFrame:
     # data_frame = data_frame.set_index('Date')
     numeric_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
     data_frame[numeric_columns] = data_frame[numeric_columns].apply(pd.to_numeric, errors='coerce')
-    # logger.info('add_dataframe_pandas')
-    # logger.info(data_frame)
     return data_frame
 
 
 @logger.catch()
-def calculate_sma(data: pd.DataFrame, period: int = PARAMETERS['sma_period']):
+async def calculate_sma(data: pd.DataFrame, period: int = PARAMETERS['sma_period']):
     # data['sma'] = ta.sma(data['Close'], length=period)
     data['sma'] = data['Close'].rolling(window=period).mean()
     return data
 
 
 @logger.catch()
-def calculate_ema(data: pd.DataFrame, period: int = PARAMETERS['ema_period']):
+async def calculate_ema(data: pd.DataFrame, period: int = PARAMETERS['ema_period']):
     # data['ema'] = ta.ema(data['Close'], length=period)
     data['ema'] = data['Close'].ewm(span=period, adjust=False).mean()
     return data
 
 @logger.catch()
-def calculate_atr(data: pd.DataFrame, period: int = PARAMETERS['atr_period']):
+async def calculate_atr(data: pd.DataFrame, period: int = PARAMETERS['atr_period']):
     data['atr'] = ta.atr(high=data['High'], low=data['Low'], close=data['Close'], length=period)
     return data
 
 
 @logger.catch()
-def calculate_bollinger_bands(data: pd.DataFrame):
+async def calculate_bollinger_bands(data: pd.DataFrame):
     # data_frame = (ta.bbands(close=data['Close'], length=PARAMETERS['bollinger_period'], std=PARAMETERS['bollinger_deviation']))
     # (
     #     data[f"BBL_{PARAMETERS['bollinger_period']}_{PARAMETERS['bollinger_deviation']}"],
@@ -70,9 +68,10 @@ async def get_dataframe_spread(data_1: pd.DataFrame, data_2: pd.DataFrame):
         'Close': data_frame_1['Close'] - data_frame_2['Close']
     })
     data_frame_3['Date'] = pd.to_datetime(data_frame_3['Date'], format='%Y-%m-%d %H:%M:%S')
+    data_frame_3.dropna(inplace=True)
     data_frame_3 = data_frame_3.set_index('Date')
     # logger.info('get_dataframe_spread')
-    # logger.info(data_frame_3)
+    # logger.info(f"get_dataframe_spread:\n {data_frame_3}")
     return data_frame_3
 
 
@@ -89,11 +88,8 @@ async def add_dataframe_tools(ticker_1: str, ticker_2: str):
 async def add_dataframe_spread_bb(ticker_1: str, ticker_2: str):
     candles_1, candles_2 = await add_dataframe_tools(ticker_1, ticker_2)
     data_frame: pd.DataFrame = await get_dataframe_spread(candles_1, candles_2)
-    data_frame: pd.DataFrame = calculate_bollinger_bands(data_frame)
+    data_frame: pd.DataFrame = await calculate_bollinger_bands(data_frame)
     data_frame.dropna(inplace=True)
-    # logger.info('add_dataframe_spread_bb')
-    # logger.info(data_frame)
-    # data_frame.to_csv('data_bb.csv', mode='w')
     return data_frame
 
 

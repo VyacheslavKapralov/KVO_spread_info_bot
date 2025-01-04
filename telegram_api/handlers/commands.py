@@ -3,37 +3,43 @@ from aiogram.dispatcher.filters import Text
 from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
-from telegram_api.handlers.keyboards import (
+from telegram_api.essence.state_machine import MainInfo
+from telegram_api.essence.keyboards import (
     main_menu,
     menu_futures_tool,
     stocks_menu,
     futures_menu,
     stocks_futures_menu,
-    spot_menu, menu_spot_tool
+    spot_menu,
+    menu_spot_tool
 )
 from settings import PARAMETERS
 from utils.search_current_ticker import get_ticker_future
 
 
 @logger.catch()
-async def command_back(callback: types.CallbackQuery):
-    logger.info("Получена команда назад.")
-    await callback.message.answer(BotAnswers.command_back(), reply_markup=main_menu())
+async def command_back_main_menu(callback: types.CallbackQuery):
+    logger.info("Получена команда выхода в главное меню.")
+    await MainInfo.type_tool.set()
+    await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=main_menu())
 
 
 @logger.catch()
-async def command_back_message(message: types.Message):
-    logger.info("Получена команда назад.")
-    await message.answer(BotAnswers.command_back(), reply_markup=main_menu())
+async def command_back_main_menu_message(message: types.Message):
+    logger.info("Получена команда выхода в главное меню.")
+    await MainInfo.type_tool.set()
+    await message.answer(BotAnswers.command_back_main_menu(), reply_markup=main_menu())
 
 
 @logger.catch()
 async def command_start(message: types.Message):
+    await MainInfo.type_tool.set()
     await message.answer(BotAnswers(message.from_user).start_message(), reply_markup=main_menu())
 
 
 @logger.catch()
 async def command_tool(callback: types.CallbackQuery):
+    await MainInfo.pare_tool.set()
     if callback.data == 'stocks':
         await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_menu())
 
@@ -50,6 +56,7 @@ async def command_tool(callback: types.CallbackQuery):
 @logger.catch()
 async def command_futures_tool(callback: types.CallbackQuery):
     PARAMETERS['type_tool'] = 'futures'
+    await MainInfo.type_info.set()
 
     if callback.data == 'CNYRUBF':
         PARAMETERS['tool_1'] = await get_ticker_future('CR')
@@ -73,6 +80,7 @@ async def command_futures_tool(callback: types.CallbackQuery):
 @logger.catch()
 async def command_stocks_futures_tool(callback: types.CallbackQuery):
     PARAMETERS['type_tool'] = 'stocks_futures'
+    await MainInfo.type_info.set()
 
     if callback.data == 'GAZPF':
         PARAMETERS['tool_1'] = await get_ticker_future('GZ')
@@ -92,6 +100,7 @@ async def command_stocks_futures_tool(callback: types.CallbackQuery):
 @logger.catch()
 async def command_stocks_tool(callback: types.CallbackQuery):
     PARAMETERS['type_tool'] = 'stocks'
+    await MainInfo.type_info.set()
 
     if callback.data == 'TATN':
         PARAMETERS['tool_1'] = 'TATN'
@@ -115,6 +124,7 @@ async def command_stocks_tool(callback: types.CallbackQuery):
 @logger.catch()
 async def command_spot_tool(callback: types.CallbackQuery):
     PARAMETERS['type_tool'] = 'spot'
+    await MainInfo.type_info.set()
 
     if callback.data == 'EURUSD':
         PARAMETERS['tool_1'] = await get_ticker_future('GD')
@@ -125,25 +135,22 @@ async def command_spot_tool(callback: types.CallbackQuery):
 
 @logger.catch()
 def register_handlers_commands(dp: Dispatcher):
-    dp.register_callback_query_handler(command_back, lambda callback: callback.data == 'main_menu')
-    dp.register_message_handler(command_back_message, commands=['main_menu'])
-    dp.register_message_handler(command_start, commands=['start', 'старт', 'info', 'инфо', 'help', 'помощь'])
-    dp.register_message_handler(command_start,
-                                Text(equals=['start', 'старт', 'info', 'инфо', 'help', 'помощь'], ignore_case=True),
-                                state='*')
+    dp.register_callback_query_handler(command_back_main_menu, lambda callback: callback.data == 'main_menu',
+                                       state='*')
+    dp.register_message_handler(command_back_main_menu_message, commands=['main_menu'], state='*')
+    dp.register_message_handler(command_start, commands=['start', 'старт', 'info', 'инфо', 'help', 'помощь'], state='*')
+    dp.register_message_handler(command_start, Text(equals=['start', 'старт', 'info', 'инфо', 'help', 'помощь'],
+                                                    ignore_case=True), state='*')
     dp.register_callback_query_handler(command_tool, lambda callback: callback.data in [
-        'stocks', 'futures', 'stocks_futures', 'spot'
-    ])
+        'stocks', 'futures', 'stocks_futures', 'spot'], state=MainInfo.type_tool)
     dp.register_callback_query_handler(command_futures_tool, lambda callback: callback.data in [
-        'CNYRUBF', 'USDRUBF', 'EURRUBF', 'GLDRUBF'
-    ])
+        'CNYRUBF', 'USDRUBF', 'EURRUBF', 'GLDRUBF'], state=MainInfo.pare_tool)
     dp.register_callback_query_handler(command_stocks_futures_tool, lambda callback: callback.data in [
-        'GAZPF', 'SBERF_R', 'SBERF_P'
-    ])
+        'GAZPF', 'SBERF_R', 'SBERF_P'], state=MainInfo.pare_tool)
     dp.register_callback_query_handler(command_stocks_tool, lambda callback: callback.data in [
-        'TATN', 'MTLR', 'RTKM', 'SBER'
-    ])
-    dp.register_callback_query_handler(command_spot_tool, lambda callback: callback.data in ['EURUSD'])
+        'TATN', 'MTLR', 'RTKM', 'SBER'], state=MainInfo.pare_tool)
+    dp.register_callback_query_handler(command_spot_tool, lambda callback: callback.data in ['EURUSD'],
+                                       state=MainInfo.pare_tool)
 
     # dp.register_message_handler(command_history, commands=['history', 'история'])
 

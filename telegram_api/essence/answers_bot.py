@@ -156,7 +156,7 @@ class BotAnswers:
         return 'Остановка бота'
 
     @staticmethod
-    def command_back() -> str:
+    def command_back_main_menu() -> str:
         return 'Возвращаюсь в главное меню'
 
     # @staticmethod
