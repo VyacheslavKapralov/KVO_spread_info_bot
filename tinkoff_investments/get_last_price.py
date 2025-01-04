@@ -1,0 +1,34 @@
+from loguru import logger
+from tinkoff.invest import Client
+from tinkoff.invest.exceptions import RequestError
+
+from  settings import TinkoffSettings
+
+TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
+
+
+@logger.catch()
+async def get_last_price(figi: str) -> str or None:
+    with Client(TOKEN) as client:
+        try:
+            response = client.market_data.get_order_book(figi=figi, depth=1)
+            nano = format_nano(response.last_price.nano)
+            last_price = f'{response.last_price.units}.{nano}'
+            return last_price
+        except RequestError as error:
+            logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
+            return
+
+
+@logger.catch()
+def format_nano(nano: int) -> str:
+    number_str = str(nano)
+    while len(number_str) < 9:
+        number_str = '0' + number_str
+
+    return number_str
+
+
+if __name__ == "__main__":
+    logger.info('Running get_last_price.py from module tinkoff_investments')
+
