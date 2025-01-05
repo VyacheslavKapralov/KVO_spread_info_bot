@@ -19,7 +19,6 @@ async def average_true_range(callback: types.CallbackQuery):
 
 @logger.catch()
 async def set_spread_type_atr(callback: types.CallbackQuery, state: FSMContext):
-    logger.info('Получена команда на расчет ATR спреда')
     async with state.proxy() as data:
         data['spread_type'] = callback.data
         data['tool_1'] = PARAMETERS['tool_1']
