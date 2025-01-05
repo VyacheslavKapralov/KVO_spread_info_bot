@@ -35,13 +35,13 @@ async def get_spread_atr(callback: types.CallbackQuery, state: FSMContext):
         df = await create_dataframe_spread(data['tool_1'], data['tool_2'])
         df_atr = await calculate_atr(df)
         data['atr'] = round(df_atr['atr'].iloc[-1], 3)
+    logger.info(f'sending_signal_atr:\n{data}\n{PARAMETERS}')
     await sending_signal_atr(callback, data)
     await MainInfo.type_info.set()
 
 
 @logger.catch()
 async def sending_signal_atr(callback: types.CallbackQuery, data: dict):
-    logger.info(f'sending_signal_atr: {callback.data} {data}\n{data}\n{PARAMETERS}')
     if PARAMETERS['type_tool'] == 'futures' or PARAMETERS['type_tool'] == 'stocks_futures':
         await callback.message.answer(f"ATR спреда {data['tool_1']} к {data['tool_2']}: {data['atr']}",
                                       reply_markup=menu_futures_tool())

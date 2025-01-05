@@ -35,14 +35,13 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
         data['spread'] = await calculate_spread(data)
     df = await add_dataframe_spread_bb(data['tool_1'], data['tool_2'])
     plot = await add_plot_spread(df, data['tool_2'])
-    await sending_signal_bb(callback, data, df, plot)
+    logger.info(f'sending_signal_bb:\n{data}\n{PARAMETERS}')
+    await sending_signal_bb(callback, data, plot)
     await MainInfo.type_info.set()
 
 
 @logger.catch()
-async def sending_signal_bb(callback: types.CallbackQuery, data: dict, plot):
-    logger.info(f'sending_signal_bb: {callback.data}\n{data}\n{PARAMETERS}')
-
+async def sending_signal_bb(callback: types.CallbackQuery, data, plot):
     await callback.message.answer(f"Текущий спред {data['tool_1']} к {data['tool_2']}: {data['spread']}")
     if PARAMETERS['type_tool'] == 'futures' or PARAMETERS['type_tool'] == 'stocks_futures':
         await callback.message.answer_photo(photo=plot,

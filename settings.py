@@ -12,20 +12,17 @@ PARAMETERS = {
     'bollinger_deviation': 2.0,
     'sma_period': 200,
     'ema_period': 200,
-    'atr_period': 500,
-    'non_stop': True,
-    'intersection': False,
+    'atr_period': 200,
     'commands': {
+        'start': 'Запустить бота',
         'main_menu': 'Вернуться в главное меню',
 
-        # 'start': 'Запустить бота',
         # 'spread': 'Прислать спред инструментов',
         # 'ema': 'Прислать EMA спреда',
         # 'sma': 'Прислать SMA спреда',
         # 'atr': 'Прислать ATR спреда',
         # 'plot_bb': 'Прислать график спреда с полосами Боллинджера',
         # 'funding': 'Прислать значение фандинга',
-        
         # 'new_bot': 'Перезапустить бота',
         # 'chancel': 'Остановить бота',
         # 'help': 'Помощь в работе с ботом',
@@ -40,6 +37,7 @@ class TinkoffSettings(BaseSettings):
 
 class BotSettings(BaseSettings):
     telebot_api: SecretStr = os.getenv('TELEGRAM_TOKEN', None)
+
 
 if __name__ == '__main__':
     logger.info('Running settings.py')

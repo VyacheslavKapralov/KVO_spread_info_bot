@@ -33,13 +33,13 @@ async def get_funding(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         await message.answer(BotAnswers.expectation_answer())
         data['funding'] = await calculate_funding(data['tool_2'])
+    logger.info(f'sending_signal_funding:\n{data}\n{PARAMETERS}')
     await sending_signal_funding(message, data)
     await MainInfo.type_info.set()
 
 
 @logger.catch()
 async def sending_signal_funding(message: types.Message, data: dict):
-    logger.info(f'sending_signal_funding: {message.text} {data}\n{data}\n{PARAMETERS}')
     if PARAMETERS['type_tool'] == 'futures' or PARAMETERS['type_tool'] == 'stocks_futures':
         await message.answer(f"Фандинг {data['tool_2']}: {data['funding'] * data['position']}",
                              reply_markup=menu_futures_tool())

@@ -35,13 +35,13 @@ async def get_spread_sma(callback: types.CallbackQuery, state: FSMContext):
         df = await create_dataframe_spread(data['tool_1'], data['tool_2'])
         df_sma = await calculate_sma(df)
         data['sma'] = round(df_sma['sma'].iloc[-1], 3)
+    logger.info(f'sending_signal_sma:\n{data}\n{PARAMETERS}')
     await sending_signal_sma(callback, data)
     await MainInfo.type_info.set()
 
 
 @logger.catch()
 async def sending_signal_sma(callback: types.CallbackQuery, data: dict):
-    logger.info(f'sending_signal_sma: {callback.data}\n{data}\n{PARAMETERS}')
     if PARAMETERS['type_tool'] == 'futures' or PARAMETERS['type_tool'] == 'stocks_futures':
         await callback.message.answer(f"SMA спреда {data['tool_1']} к {data['tool_2']}: {data['sma']}",
                                       reply_markup=menu_futures_tool())
