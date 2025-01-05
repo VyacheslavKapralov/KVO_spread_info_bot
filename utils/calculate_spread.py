@@ -49,10 +49,5 @@ async def calculate_spread(data: dict) -> str or None:
     return 'Неверный формат спреда'
 
 
-@logger.catch()
-def calculate_funding(data: dict) -> str or None:
-    pass
-
-
 if __name__ == '__main__':
     logger.info('Running calculate_spread.py from module utils')

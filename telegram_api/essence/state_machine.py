@@ -1,23 +1,15 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from loguru import logger
 
-
-class Spread(StatesGroup):
+class MainInfo(StatesGroup):
+    type_tool = State()
+    pare_tool = State()
+    type_info = State()
     spread_type = State()
-
-class SMA(StatesGroup):
-    spread_type = State()
-
-class EMA(StatesGroup):
-    spread_type = State()
-
-class Plot(StatesGroup):
-    spread_type = State()
-
-class ATR(StatesGroup):
-    spread_type = State()
-
-class Position(StatesGroup):
+    spread_type_ema = State()
+    spread_type_sma = State()
+    spread_type_atr = State()
+    spread_type_bb = State()
     position = State()
 
 
