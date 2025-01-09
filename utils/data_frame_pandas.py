@@ -11,7 +11,6 @@ from tinkoff_investments.get_figi_for_ticker import searching_ticker_figi
 async def add_dataframe_pandas(data: list) -> pd.DataFrame:
     data_frame = pd.DataFrame(data, columns=['Date', 'Open', 'High', 'Low', 'Close', 'Volume'])
     data_frame['Date'] = pd.to_datetime(data_frame['Date'], format='%Y-%m-%d %H:%M:%S')
-    # data_frame = data_frame.set_index('Date')
     numeric_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
     data_frame[numeric_columns] = data_frame[numeric_columns].apply(pd.to_numeric, errors='coerce')
     return data_frame
@@ -70,8 +69,6 @@ async def get_dataframe_spread(data_1: pd.DataFrame, data_2: pd.DataFrame):
     data_frame_3['Date'] = pd.to_datetime(data_frame_3['Date'], format='%Y-%m-%d %H:%M:%S')
     data_frame_3.dropna(inplace=True)
     data_frame_3 = data_frame_3.set_index('Date')
-    # logger.info('get_dataframe_spread')
-    # logger.info(f"get_dataframe_spread:\n {data_frame_3}")
     return data_frame_3
 
 

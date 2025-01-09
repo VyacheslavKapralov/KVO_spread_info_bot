@@ -30,16 +30,13 @@ async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
                       )
     ax = fig.axes[0]
     ax.xaxis.set_major_locator(mdates.HourLocator(interval=565))
-
     now_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     fig.savefig(f"data_base/plots/plot_BB_{now_datetime}", dpi=600, bbox_inches='tight')
-
     # mpf.show()
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
     plt.close(fig)
-
     return buf
 
 
