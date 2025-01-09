@@ -26,12 +26,10 @@ async def set_bot_commands():
         await bot.delete_my_commands(scope)
         bot_commands = [BotCommand(command=cmd, description=desc) for cmd, desc in PARAMETERS['commands'].items()]
         await bot.set_my_commands(bot_commands)
-
     except exceptions.NetworkError as error:
         logger.error(f"Сетевая ошибка: {error} --- {error.with_traceback()}")
         await asyncio.sleep(5)
         await set_bot_commands()
-
     except Exception as error:
         logger.error(f"Произошла ошибка: {error} --- {error.with_traceback()}")
 
@@ -52,14 +50,13 @@ async def main(_):
             get_atr_spread_moex.register_handlers_command_atr(dp)
             logger.info('Start KVO_CNY_spread_info_bot')
             break
-
         except exceptions.NetworkError as error:
             logger.error(f"Сетевая ошибка: {error} --- {error.with_traceback()}")
             count -= 1
             await asyncio.sleep(5)
-
         except Exception as error:
             logger.error(f"Произошла ошибка: {error} --- {error.with_traceback()}")
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=main)
