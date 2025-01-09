@@ -25,6 +25,5 @@ def check_int(func):
     return wrapper
 
 
-
 if __name__ == '__main__':
     logger.info('Running decorators.py from module utils')

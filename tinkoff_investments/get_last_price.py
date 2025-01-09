@@ -17,7 +17,6 @@ async def get_last_price(figi: str) -> str or None:
             return last_price
         except RequestError as error:
             logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
-            return
 
 
 @logger.catch()
@@ -25,7 +24,6 @@ def format_nano(nano: int) -> str:
     number_str = str(nano)
     while len(number_str) < 9:
         number_str = '0' + number_str
-
     return number_str
 
 

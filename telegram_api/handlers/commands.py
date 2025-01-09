@@ -89,7 +89,6 @@ async def command_stocks_futures_tool(callback: types.CallbackQuery):
 async def command_stocks_tool(callback: types.CallbackQuery):
     PARAMETERS['type_tool'] = 'stocks'
     await MainInfo.type_info.set()
-
     if callback.data == 'TATN':
         PARAMETERS['tool_1'] = 'TATN'
         PARAMETERS['tool_2'] = 'TATNP'

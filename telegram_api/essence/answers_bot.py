@@ -43,7 +43,6 @@ class BotAnswers:
         elif spread_type == 'money':
             return f"Спред {tool_1}-{tool_2} руб."
 
-
     @staticmethod
     def spread_bb_moex(tool_1, tool_2, spread_type):
         if spread_type == 'percent':

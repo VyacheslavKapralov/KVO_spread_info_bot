@@ -30,8 +30,8 @@ async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -
                 f'{candle.close.units}.{format_nano(candle.close.nano)}',
                 candle.volume
             ])
-
     return candles_list
+
 
 @logger.catch()
 async def get_candle_interval(candle_interval: str) -> CandleInterval:
@@ -52,7 +52,6 @@ async def get_candle_interval(candle_interval: str) -> CandleInterval:
         'UNSPECIFIED': CandleInterval.CANDLE_INTERVAL_UNSPECIFIED,
     }
     return intervals.get(candle_interval)
-
 
 
 if __name__ == "__main__":

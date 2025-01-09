@@ -21,4 +21,3 @@ async def get_all_futures_moex():
 
 if __name__ == '__main__':
     logger.info('Running search_current_ticker.py from module utils')
-

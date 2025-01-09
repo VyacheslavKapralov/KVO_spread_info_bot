@@ -18,9 +18,8 @@ async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
                                  panel=0, color='y', title='Middle Band')
     ap_upper = mpf.make_addplot(data_frame[f"BBU_{PARAMETERS['bollinger_period']}_{PARAMETERS['bollinger_deviation']}"],
                                 panel=0, color='r', title='Upper Band')
-
     fig, _ = mpf.plot(data_frame, type='line', addplot=[ap_lower, ap_middle, ap_upper], volume=False,
-                      title=f"{ticker} с Bollinger Bands",
+                      title=f"{ticker} with Bollinger Bands",
                       style='yahoo',
                       figscale=2,
                       tight_layout=True,

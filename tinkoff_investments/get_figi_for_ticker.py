@@ -10,7 +10,7 @@ from settings import TinkoffSettings
 
 TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
 
-#
+
 @logger.catch()
 async def searching_ticker_figi(ticker: str) -> str or None:
     count = 2
@@ -19,18 +19,14 @@ async def searching_ticker_figi(ticker: str) -> str or None:
             data = pd.read_csv('tinkoff_investments/ticker_to_figi.csv')
             figi_value = data.loc[data['ticker'] == ticker, 'figi']
             return figi_value.values[0]
-
         except FileNotFoundError:
             await get_figi_to_tinkoff().to_csv('tinkoff_investments/ticker_to_figi.csv', mode='w')
             continue
-
         except IndexError:
             await get_figi_to_tinkoff().to_csv('tinkoff_investments/ticker_to_figi.csv', mode='a')
             count -= 1
             continue
-
     logger.info(f'Не найден инструмент {ticker} в файле с инструментами биржи.')
-
 
 
 @logger.catch()
@@ -66,9 +62,7 @@ async def get_figi_to_tinkoff() -> pd.DataFrame:
                         "kshort": quotation_to_decimal(item.kshort),
                     }
                 )
-
         tickers_df = pd.DataFrame(tickers)
-
         return tickers_df
 
 

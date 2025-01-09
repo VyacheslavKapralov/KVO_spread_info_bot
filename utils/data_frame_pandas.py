@@ -29,6 +29,7 @@ async def calculate_ema(data: pd.DataFrame, period: int = PARAMETERS['ema_period
     data['ema'] = data['Close'].ewm(span=period, adjust=False).mean()
     return data
 
+
 @logger.catch()
 async def calculate_atr(data: pd.DataFrame, period: int = PARAMETERS['atr_period']):
     data['atr'] = ta.atr(high=data['High'], low=data['Low'], close=data['Close'], length=period)
