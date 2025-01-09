@@ -32,10 +32,9 @@ async def get_spread_sma(callback: types.CallbackQuery, state: FSMContext):
         await callback.message.answer(BotAnswers.spread_sma_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
         data['spread'] = await calculate_spread(data)
-        df = await create_dataframe_spread(data['tool_1'], data['tool_2'])
-        df_sma = await calculate_sma(df)
+        df = await create_dataframe_spread(data, PARAMETERS['time_frame_minutes'])
+        df_sma = await calculate_sma(df, PARAMETERS['sma_period'])
         data['sma'] = round(df_sma['sma'].iloc[-1], 3)
-    logger.info(f'sending_signal_sma:\n{data}\n{PARAMETERS}')
     await sending_signal_sma(callback, data)
     await MainInfo.type_info.set()
 

@@ -37,11 +37,9 @@ async def get_price_for_figi(tool: str) -> float or None:
 async def calculate_spread(data: dict) -> str or None:
     if data['spread_type'] == 'percent':
         spread = await calculate_spread_percent(data['tool_1'], data['tool_2'])
-        logger.info(f"Spread {data['tool_1']}/{data['tool_2']} = {spread}%.")
         return spread
     elif data['spread_type'] == 'money':
         spread = await calculate_spread_money(data['tool_1'], data['tool_2'])
-        logger.info(f"Spread {data['tool_1']}-{data['tool_2']} = {spread} руб.")
         return spread
     return 'Неверный формат спреда'
 

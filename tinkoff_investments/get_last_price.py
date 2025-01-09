@@ -29,4 +29,3 @@ def format_nano(nano: int) -> str:
 
 if __name__ == "__main__":
     logger.info('Running get_last_price.py from module tinkoff_investments')
-
