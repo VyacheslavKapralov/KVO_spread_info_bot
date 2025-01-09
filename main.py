@@ -61,7 +61,5 @@ async def main(_):
         except Exception as error:
             logger.error(f"Произошла ошибка: {error} --- {error.with_traceback()}")
 
-
-
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=main)

@@ -30,7 +30,6 @@ async def get_price_for_figi(tool: str) -> float or None:
     last_price = await get_last_price(ticker)
     if not last_price:
         return
-
     return float(last_price)
 
 
@@ -40,12 +39,10 @@ async def calculate_spread(data: dict) -> str or None:
         spread = await calculate_spread_percent(data['tool_1'], data['tool_2'])
         logger.info(f"Spread {data['tool_1']}/{data['tool_2']} = {spread}%.")
         return spread
-
     elif data['spread_type'] == 'money':
         spread = await calculate_spread_money(data['tool_1'], data['tool_2'])
         logger.info(f"Spread {data['tool_1']}-{data['tool_2']} = {spread} руб.")
         return spread
-
     return 'Неверный формат спреда'
 
 

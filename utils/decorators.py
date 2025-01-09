@@ -11,7 +11,6 @@ def check_float(func):
             await func(message, state)
         except ValueError:
             await message.answer(BotAnswers.check_float_answer(message.text))
-
     return wrapper
 
 
@@ -23,7 +22,6 @@ def check_int(func):
             await func(message, state)
         except ValueError:
             await message.answer(BotAnswers.check_int_answer(message.text))
-
     return wrapper
 
 
