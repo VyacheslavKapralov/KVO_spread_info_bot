@@ -5,7 +5,6 @@ from loguru import logger
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
 from telegram_api.essence.keyboards import menu_futures_tool, menu_spot_tool
-from settings import PARAMETERS
 from utils.calculate_funding import calculate_funding
 from utils.decorators import check_int
 
@@ -21,8 +20,6 @@ async def funding(callback: types.CallbackQuery):
 async def set_position(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['position'] = int(message.text)
-        data['tool_1'] = PARAMETERS['tool_1']
-        data['tool_2'] = PARAMETERS['tool_2']
     await get_funding(message, state)
 
 
@@ -37,7 +34,7 @@ async def get_funding(message: types.Message, state: FSMContext):
 
 @logger.catch()
 async def sending_signal_funding(message: types.Message, data: dict):
-    if PARAMETERS['type_tool'] == 'futures' or PARAMETERS['type_tool'] == 'stocks_futures':
+    if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
         await message.answer(f"Фандинг {data['tool_2']}: {data['funding'] * data['position']}",
                              reply_markup=menu_futures_tool())
     else:

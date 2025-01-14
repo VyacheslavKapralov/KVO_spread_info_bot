@@ -1,4 +1,5 @@
 from aiogram import Dispatcher, types
+from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from loguru import logger
 
@@ -49,75 +50,59 @@ async def command_tool(callback: types.CallbackQuery):
 
 
 @logger.catch()
-async def command_futures_tool(callback: types.CallbackQuery):
-    PARAMETERS['type_tool'] = 'futures'
+async def command_futures_tool(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
-    if callback.data == 'CNYRUBF':
-        PARAMETERS['tool_1'] = await get_ticker_future('CR')
-        PARAMETERS['tool_2'] = 'CNYRUBF'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1
-    if callback.data == 'USDRUBF':
-        PARAMETERS['tool_1'] = await get_ticker_future('Si')
-        PARAMETERS['tool_2'] = 'USDRUBF'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1000
-    if callback.data == 'EURRUBF':
-        PARAMETERS['tool_1'] = await get_ticker_future('Eu')
-        PARAMETERS['tool_2'] = 'EURRUBF'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1000
-    if callback.data == 'GLDRUBF':
-        PARAMETERS['tool_1'] = await get_ticker_future('GD')
-        PARAMETERS['tool_2'] = 'GLDRUBF'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1
-    await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
+    tool_1 = await get_ticker_future(PARAMETERS['futures_pairs'].get(callback.data)['pair'][0])
+    if tool_1:
+        async with state.proxy() as data:
+            data['type_tool'] = 'futures'
+            data['tool_1'] = tool_1
+            data['tool_2'] = PARAMETERS['futures_pairs'][callback.data]['pair'][1]
+            data['coefficient_tool_1'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_1']
+            data['coefficient_tool_2'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_2']
+        return await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
+    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
 
 
 @logger.catch()
-async def command_stocks_futures_tool(callback: types.CallbackQuery):
-    PARAMETERS['type_tool'] = 'stocks_futures'
+async def command_stocks_futures_tool(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
-    if callback.data == 'GAZPF':
-        PARAMETERS['tool_1'] = await get_ticker_future('GZ')
-        PARAMETERS['tool_2'] = 'GAZPF'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 100
-    if callback.data == 'SBERF_R':
-        PARAMETERS['tool_1'] = await get_ticker_future('SR')
-        PARAMETERS['tool_2'] = 'SBERF'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 100
-    if callback.data == 'SBERF_P':
-        PARAMETERS['tool_1'] = await get_ticker_future('SP')
-        PARAMETERS['tool_2'] = 'SBERF'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 100
-    await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
+    tool_1 = await get_ticker_future(PARAMETERS['futures_pairs'].get(callback.data)['pair'][0])
+    if tool_1:
+        async with state.proxy() as data:
+            data['type_tool'] = 'stocks_futures'
+            data['tool_1'] = tool_1
+            data['tool_2'] = PARAMETERS['futures_pairs'][callback.data]['pair'][1]
+            data['coefficient_tool_1'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_1']
+            data['coefficient_tool_2'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_2']
+        return await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
+    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
 
 
 @logger.catch()
-async def command_stocks_tool(callback: types.CallbackQuery):
-    PARAMETERS['type_tool'] = 'stocks'
+async def command_stocks_tool(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
-    if callback.data == 'TATN':
-        PARAMETERS['tool_1'] = 'TATN'
-        PARAMETERS['tool_2'] = 'TATNP'
-    if callback.data == 'MTLR':
-        PARAMETERS['tool_1'] = 'MTLR'
-        PARAMETERS['tool_2'] = 'MTLRP'
-    if callback.data == 'RTKM':
-        PARAMETERS['tool_1'] = 'RTKM'
-        PARAMETERS['tool_2'] = 'RTKMP'
-    if callback.data == 'SBER':
-        PARAMETERS['tool_1'] = 'SBER'
-        PARAMETERS['tool_2'] = 'SBERP'
+    async with state.proxy() as data:
+        data['type_tool'] = 'stocks'
+        data['tool_1'] = callback.data
+        data['tool_2'] = PARAMETERS['stocks_pairs'].get(callback.data)
+        data['coefficient_tool_1'], data['coefficient_tool_2'] = 1, 1
     await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_spot_tool())
 
 
 @logger.catch()
-async def command_spot_tool(callback: types.CallbackQuery):
-    PARAMETERS['type_tool'] = 'spot'
+async def command_spot_tool(callback: types.CallbackQuery, state: FSMContext):  # функция не готова
     await MainInfo.type_info.set()
-    if callback.data == 'EURUSD':
-        PARAMETERS['tool_1'] = await get_ticker_future('GD')
-        PARAMETERS['tool_2'] = 'EURUSD'
-        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_1'] = 1, 1
-    await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_spot_tool())
+    # tool_1 = await get_ticker_future(PARAMETERS['spots_pairs'].get(callback.data))
+    tool_1 = None
+    if tool_1:
+        async with state.proxy() as data:
+            data['type_tool'] = 'spot'
+            data['tool_1'] = tool_1
+            data['tool_2'] = 'EURUSD'
+            data['coefficient_tool_1'], data['coefficient_tool_2'] = 1, 1
+        await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_spot_tool())
+    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
 
 
 @logger.catch()
@@ -136,9 +121,9 @@ def register_handlers_commands(dp: Dispatcher):
         'GAZPF', 'SBERF_R', 'SBERF_P'], state=MainInfo.pare_tool)
     dp.register_callback_query_handler(command_stocks_tool, lambda callback: callback.data in [
         'TATN', 'MTLR', 'RTKM', 'SBER'], state=MainInfo.pare_tool)
-    dp.register_callback_query_handler(command_spot_tool, lambda callback: callback.data in ['EURUSD'],
-                                       state=MainInfo.pare_tool)
 
+    # dp.register_callback_query_handler(command_spot_tool, lambda callback: callback.data in ['EURUSD'],
+    #                                    state=MainInfo.pare_tool)
     # dp.register_message_handler(command_history, commands=['history', 'история'])
 
 

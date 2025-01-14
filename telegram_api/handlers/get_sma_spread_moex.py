@@ -20,8 +20,6 @@ async def simple_ma(callback: types.CallbackQuery):
 async def set_spread_type_sma(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data['spread_type'] = callback.data
-        data['tool_1'] = PARAMETERS['tool_1']
-        data['tool_2'] = PARAMETERS['tool_2']
     await get_spread_sma(callback, state)
 
 
@@ -30,12 +28,20 @@ async def get_spread_sma(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.spread_sma_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(data, PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'])
+        data['spread'] = await calculate_spread(
+            data['coefficient_tool_1'],
+            data['coefficient_tool_2'],
+            data['spread_type'],
+            data['tool_1'],
+            data['tool_2']
+        )
         df = await create_dataframe_spread(
-            data,
             PARAMETERS['time_frame_minutes'],
-            PARAMETERS['coefficient_tool_1'],
-            PARAMETERS['coefficient_tool_2']
+            data['coefficient_tool_1'],
+            data['coefficient_tool_2'],
+            data['spread_type'],
+            data['tool_1'],
+            data['tool_2']
         )
         df_sma = await calculate_sma(df, PARAMETERS['sma_period'])
         data['sma'] = round(df_sma['sma'].iloc[-1], 3)
@@ -45,7 +51,7 @@ async def get_spread_sma(callback: types.CallbackQuery, state: FSMContext):
 
 @logger.catch()
 async def sending_signal_sma(callback: types.CallbackQuery, data: dict):
-    if PARAMETERS['type_tool'] == 'futures' or PARAMETERS['type_tool'] == 'stocks_futures':
+    if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
         await callback.message.answer(f"SMA спреда {data['tool_1']} к {data['tool_2']}: {data['sma']}",
                                       reply_markup=menu_futures_tool())
     else:

@@ -6,17 +6,17 @@ class BotAnswers:
     @staticmethod
     def start_message(first_name: str) -> str:
         return (f"Добро пожаловать, {first_name}.\n"
-                f"Я бот для взаимодействии с биржей для расчета информации по спреду различных пар."
-                )
+                f"Я бот для взаимодействии с биржей для расчета информации по спреду различных пар.")
 
     @staticmethod
     def to_developing() -> str:
         return 'В разработке...'
 
-    # @staticmethod
-    # def tool_1():
-    #     return 'Введите тикер первого инструмента'
-    #
+    @staticmethod
+    def tool_1_futures():
+        return ('При попытке получить актуальный тикер фьючерсного контракта не удалось связаться с биржей. '
+                'Повторите попытку позже.')
+
     # @staticmethod
     # def tool_2():
     #     return 'Введите тикер второго инструмента'

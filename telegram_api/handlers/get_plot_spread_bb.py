@@ -21,8 +21,6 @@ async def bollinger_bands(callback: types.CallbackQuery):
 async def set_spread_type_bb(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data['spread_type'] = callback.data
-        data['tool_1'] = PARAMETERS['tool_1']
-        data['tool_2'] = PARAMETERS['tool_2']
     await get_spread_bb(callback, state)
 
 
@@ -31,14 +29,22 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.spread_bb_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(data, PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'])
+        data['spread'] = await calculate_spread(
+            data['coefficient_tool_1'],
+            data['coefficient_tool_2'],
+            data['spread_type'],
+            data['tool_1'],
+            data['tool_2']
+        )
     df = await add_dataframe_spread_bb(
-        data,
         PARAMETERS['time_frame_minutes'],
-        PARAMETERS['coefficient_tool_1'],
-        PARAMETERS['coefficient_tool_2'],
+        data['coefficient_tool_1'],
+        data['coefficient_tool_2'],
         PARAMETERS['bollinger_deviation'],
         PARAMETERS['bollinger_period'],
+        data['spread_type'],
+        data['tool_1'],
+        data['tool_2']
     )
     plot = await add_plot_spread(df, data['tool_2'])
     await sending_signal_bb(callback, data, plot)
@@ -48,7 +54,7 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
 @logger.catch()
 async def sending_signal_bb(callback: types.CallbackQuery, data, plot):
     await callback.message.answer(f"Текущий спред {data['tool_1']} к {data['tool_2']}: {data['spread']}")
-    if PARAMETERS['type_tool'] == 'futures' or PARAMETERS['type_tool'] == 'stocks_futures':
+    if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
         await callback.message.answer_photo(photo=plot,
                                             caption=f"График с полосами Боллинджера для {data['tool_1']} к {data['tool_2']}",
                                             reply_markup=menu_futures_tool())

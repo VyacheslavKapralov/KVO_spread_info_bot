@@ -1,4 +1,4 @@
-# from datetime import datetime
+from datetime import datetime
 
 import pandas as pd
 import mplfinance as mpf
@@ -11,10 +11,10 @@ from loguru import logger
 
 @logger.catch()
 async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
-    ap_lower = mpf.make_addplot(data_frame["BBL"], panel=0, color='g', title='Lower Band')
-    ap_middle = mpf.make_addplot(data_frame["BBM"], panel=0, color='y', title='Middle Band')
-    ap_upper = mpf.make_addplot(data_frame["BBU"], panel=0, color='r', title='Upper Band')
-    fig, _ = mpf.plot(
+    ap_lower = mpf.make_addplot(data_frame["BBL"], panel=0, color='g', title='Lower Band', secondary_y=False)
+    ap_middle = mpf.make_addplot(data_frame["BBM"], panel=0, color='y', title='Middle Band', secondary_y=False)
+    ap_upper = mpf.make_addplot(data_frame["BBU"], panel=0, color='r', title='Upper Band', secondary_y=False)
+    fig, axlist = mpf.plot(
         data_frame,
         type='line',
         addplot=[ap_lower, ap_middle, ap_upper],
@@ -26,10 +26,11 @@ async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
         returnfig=True,
         figratio=(16, 9),
     )
-    ax = fig.axes[0]
+    ax = axlist[0]
+    # ax.xaxis.set_major_locator(mdates.AutoDateLocator())
     ax.xaxis.set_major_locator(mdates.HourLocator(interval=570))
-    # now_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    # fig.savefig(f"data_base/plots/{now_datetime}", dpi=600, bbox_inches='tight')
+    now_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    fig.savefig(f"data_base/plots/{now_datetime}", dpi=600, bbox_inches='tight')
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)

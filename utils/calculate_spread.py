@@ -36,12 +36,13 @@ async def get_price_for_figi(tool: str) -> float or None:
 
 
 @logger.catch()
-async def calculate_spread(data: dict, coefficient_tool_1: int, coefficient_tool_2: int) -> str or None:
-    if data['spread_type'] == 'percent':
-        spread = await calculate_spread_percent(data['tool_1'], data['tool_2'], coefficient_tool_1, coefficient_tool_2)
+async def calculate_spread(coefficient_tool_1: int, coefficient_tool_2: int, spread_type: str,
+                           tool_1: str, tool_2: str) -> str or None:
+    if spread_type == 'percent':
+        spread = await calculate_spread_percent(tool_1, tool_2, coefficient_tool_1, coefficient_tool_2)
         return spread
-    elif data['spread_type'] == 'money':
-        spread = await calculate_spread_money(data['tool_1'], data['tool_2'], coefficient_tool_1, coefficient_tool_2)
+    elif spread_type == 'money':
+        spread = await calculate_spread_money(tool_1, tool_2, coefficient_tool_1, coefficient_tool_2)
         return spread
     return 'Неверный формат спреда'
 

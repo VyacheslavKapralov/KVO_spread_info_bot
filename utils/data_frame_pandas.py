@@ -1,4 +1,4 @@
-from datetime import timedelta
+# from datetime import timedelta
 
 import pandas as pd
 import pandas_ta as ta
@@ -79,11 +79,11 @@ async def calculate_bollinger_bands_ema(data_frame: pd.DataFrame, deviation: int
 
 
 @logger.catch()
-async def get_dataframe_spread(data: dict, data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
-                               coefficient_tool_1: int, coefficient_tool_2: int) -> pd.DataFrame:
+async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
+                               coefficient_tool_1: int, coefficient_tool_2: int, spread_type: str) -> pd.DataFrame:
     merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
     data_frame_3 = pd.DataFrame({'Date': merged_df['Date']})
-    if data['spread_type'] == 'money':
+    if spread_type == 'money':
         data_frame_3['Open'] = round(
             merged_df['Open_1'] * coefficient_tool_1 - merged_df['Open_2'] * coefficient_tool_2, 3)
         data_frame_3['High'] = round(
@@ -92,7 +92,7 @@ async def get_dataframe_spread(data: dict, data_frame_1: pd.DataFrame, data_fram
             merged_df['Low_1'] * coefficient_tool_1 - merged_df['Low_2'] * coefficient_tool_2, 3)
         data_frame_3['Close'] = round(
             merged_df['Close_1'] * coefficient_tool_1 - merged_df['Close_2'] * coefficient_tool_2, 3)
-    elif data['spread_type'] == 'percent':
+    elif spread_type == 'percent':
         data_frame_3['Open'] = round((merged_df['Open_1'] * coefficient_tool_1 /
                                       merged_df['Open_2'] * coefficient_tool_2 - 1) * 100, 3)
         data_frame_3['High'] = round((merged_df['High_1'] * coefficient_tool_1 /
@@ -111,23 +111,25 @@ async def add_candles_tool(ticker: str, candle_interval: str) -> list:
 
 
 @logger.catch()
-async def add_dataframe_spread_bb(data: dict, candle_interval: str, coefficient_tool_1: int, coefficient_tool_2: int,
-                                  deviation: int, period: int) -> pd.DataFrame:
-    data_frame = await create_dataframe_spread(data, candle_interval, coefficient_tool_1, coefficient_tool_2)
+async def add_dataframe_spread_bb(candle_interval: str, coefficient_tool_1: int, coefficient_tool_2: int,
+                                  deviation: int, period: int, spread_type: str,
+                                  tool_1: str, tool_2: str) -> pd.DataFrame:
+    data_frame = await create_dataframe_spread(candle_interval, coefficient_tool_1, coefficient_tool_2, spread_type,
+                                               tool_1, tool_2)
     data_frame = await calculate_bollinger_bands_ta(data_frame, deviation, period)
-    data_frame = data_frame.set_index('Date')
     data_frame.dropna(inplace=True)
+    data_frame = data_frame.set_index('Date')
     return data_frame
 
 
 @logger.catch()
-async def create_dataframe_spread(data: dict, candle_interval: str, coefficient_tool_1: int,
-                                  coefficient_tool_2: int) -> pd.DataFrame:
-    candles_1 = await add_candles_tool(data['tool_1'], candle_interval)
-    candles_2 = await add_candles_tool(data['tool_2'], candle_interval)
+async def create_dataframe_spread(candle_interval: str, coefficient_tool_1: int, coefficient_tool_2: int,
+                                  spread_type: str, tool_1: str, tool_2: str) -> pd.DataFrame:
+    candles_1 = await add_candles_tool(tool_1, candle_interval)
+    candles_2 = await add_candles_tool(tool_2, candle_interval)
     data_frame_1 = await add_dataframe_pandas(candles_1)
     data_frame_2 = await add_dataframe_pandas(candles_2)
-    return await get_dataframe_spread(data, data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2)
+    return await get_dataframe_spread(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2, spread_type)
 
 
 if __name__ == '__main__':

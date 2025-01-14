@@ -44,14 +44,10 @@ async def get_figi_to_tinkoff() -> pd.DataFrame:
                         "figi": item.figi,
                         "uid": item.uid,
                         "type": method,
-                        "min_price_increment": quotation_to_decimal(
-                            item.min_price_increment
-                        ),
+                        "min_price_increment": quotation_to_decimal(item.min_price_increment),
                         "scale": 9 - len(str(item.min_price_increment.nano)) + 1,
                         "lot": item.lot,
-                        "trading_status": str(
-                            SecurityTradingStatus(item.trading_status).name
-                        ),
+                        "trading_status": str(SecurityTradingStatus(item.trading_status).name),
                         "api_trade_available_flag": item.api_trade_available_flag,
                         "currency": item.currency,
                         "exchange": item.exchange,
