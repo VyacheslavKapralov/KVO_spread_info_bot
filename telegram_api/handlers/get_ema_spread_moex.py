@@ -12,7 +12,6 @@ from utils.data_frame_pandas import calculate_ema, create_dataframe_spread
 
 @logger.catch()
 async def exponential_ma(callback: types.CallbackQuery):
-    logger.info('Получена команда на расчет EMA спреда')
     await MainInfo.spread_type_ema.set()
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 

@@ -12,7 +12,6 @@ from utils.data_frame_pandas import calculate_atr, create_dataframe_spread
 
 @logger.catch()
 async def average_true_range(callback: types.CallbackQuery):
-    logger.info('Получена команда на расчет ATR спреда')
     await MainInfo.spread_type_atr.set()
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 

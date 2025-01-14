@@ -8,7 +8,7 @@ def log_telegram_bot():
 
     now_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     logger.add(
-        f'logs/files_logs/start_{now_datetime}_bot_logs.log',
+        f'logs/files_logs/{now_datetime}.log',
         rotation='1 day',
         retention='7 days',
         encoding='utf-8',

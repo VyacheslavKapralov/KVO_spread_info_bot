@@ -1,14 +1,11 @@
-from aiogram import types
 from loguru import logger
 
 
 class BotAnswers:
 
-    def __init__(self, user: types.user.User):
-        self.user = user
-
-    def start_message(self) -> str:
-        return (f"Добро пожаловать, {self.user.first_name}.\n"
+    @staticmethod
+    def start_message(first_name: str) -> str:
+        return (f"Добро пожаловать, {first_name}.\n"
                 f"Я бот для взаимодействии с биржей для расчета информации по спреду различных пар."
                 )
 

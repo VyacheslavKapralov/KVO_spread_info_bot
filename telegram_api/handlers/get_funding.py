@@ -12,7 +12,6 @@ from utils.decorators import check_int
 
 @logger.catch()
 async def funding(callback: types.CallbackQuery):
-    logger.info('Получена команда для вычисления фандинга')
     await MainInfo.position.set()
     await callback.message.answer(BotAnswers.position())
 
@@ -20,7 +19,6 @@ async def funding(callback: types.CallbackQuery):
 @logger.catch()
 @check_int
 async def set_position(message: types.Message, state: FSMContext):
-    logger.info(f'set_position: {message.text}')
     async with state.proxy() as data:
         data['position'] = int(message.text)
         data['tool_1'] = PARAMETERS['tool_1']

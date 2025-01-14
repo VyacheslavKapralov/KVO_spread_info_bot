@@ -13,7 +13,6 @@ from utils.spread_chart import add_plot_spread
 
 @logger.catch()
 async def bollinger_bands(callback: types.CallbackQuery):
-    logger.info('Получена команда на получение графика спреда с полосами Боллинджера')
     await MainInfo.spread_type_bb.set()
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
@@ -32,8 +31,7 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.spread_bb_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(data, PARAMETERS['coefficient_tool_1'],
-                                                PARAMETERS['coefficient_tool_2'])
+        data['spread'] = await calculate_spread(data, PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'])
     df = await add_dataframe_spread_bb(
         data,
         PARAMETERS['time_frame_minutes'],

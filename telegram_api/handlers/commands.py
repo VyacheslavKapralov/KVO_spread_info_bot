@@ -19,14 +19,12 @@ from utils.search_current_ticker import get_ticker_future
 
 @logger.catch()
 async def command_back_main_menu(callback: types.CallbackQuery):
-    logger.info("Получена команда выхода в главное меню.")
     await MainInfo.type_tool.set()
     await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=main_menu())
 
 
 @logger.catch()
 async def command_back_main_menu_message(message: types.Message):
-    logger.info("Получена команда выхода в главное меню.")
     await MainInfo.type_tool.set()
     await message.answer(BotAnswers.command_back_main_menu(), reply_markup=main_menu())
 
@@ -34,7 +32,7 @@ async def command_back_main_menu_message(message: types.Message):
 @logger.catch()
 async def command_start(message: types.Message):
     await MainInfo.type_tool.set()
-    await message.answer(BotAnswers(message.from_user).start_message(), reply_markup=main_menu())
+    await message.answer(BotAnswers().start_message(message.from_user.first_name), reply_markup=main_menu())
 
 
 @logger.catch()

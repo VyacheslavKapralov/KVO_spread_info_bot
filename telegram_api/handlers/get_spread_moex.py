@@ -11,7 +11,6 @@ from utils.calculate_spread import calculate_spread
 
 @logger.catch()
 async def get_spread_moex(callback: types.CallbackQuery):
-    logger.info('Получена команда на расчет спреда')
     await MainInfo.spread_type.set()
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 

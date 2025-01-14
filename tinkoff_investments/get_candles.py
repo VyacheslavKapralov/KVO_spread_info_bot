@@ -22,8 +22,8 @@ async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -
                 interval=interval,
         ):
             candles_list.append([
-                f'{candle.time.year}-{format_time(candle.time.month)}-{format_time(candle.time.day)} '
-                f'{format_time(candle.time.hour + 3)}:{format_time(candle.time.minute)}:{format_time(candle.time.second)}',
+                f'{candle.time.year}-{candle.time.month}-{candle.time.day} '
+                f'{candle.time.hour}:{candle.time.minute}:{candle.time.second}',
                 f'{candle.open.units}.{format_nano(candle.open.nano)}',
                 f'{candle.high.units}.{format_nano(candle.high.nano)}',
                 f'{candle.low.units}.{format_nano(candle.low.nano)}',
@@ -52,14 +52,6 @@ async def get_candle_interval(candle_interval: str) -> CandleInterval:
         'UNSPECIFIED': CandleInterval.CANDLE_INTERVAL_UNSPECIFIED,
     }
     return intervals.get(candle_interval)
-
-
-@logger.catch()
-def format_time(time: int) -> str:
-    number_str = str(time)
-    while len(number_str) < 2:
-        number_str = '0' + number_str
-    return number_str
 
 
 if __name__ == "__main__":
