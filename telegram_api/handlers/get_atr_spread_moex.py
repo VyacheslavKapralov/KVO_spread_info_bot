@@ -31,8 +31,13 @@ async def get_spread_atr(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.spread_atr_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(data)
-        df = await create_dataframe_spread(data, PARAMETERS['time_frame_minutes'])
+        data['spread'] = await calculate_spread(data, PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'])
+        df = await create_dataframe_spread(
+            data,
+            PARAMETERS['time_frame_minutes'],
+            PARAMETERS['coefficient_tool_1'],
+            PARAMETERS['coefficient_tool_2']
+        )
         df_atr = await calculate_atr(df, PARAMETERS['atr_period'])
         data['atr'] = round(df_atr['atr'].iloc[-1], 3)
     await sending_signal_atr(callback, data)

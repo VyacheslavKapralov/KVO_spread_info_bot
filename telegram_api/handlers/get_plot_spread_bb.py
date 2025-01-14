@@ -32,9 +32,16 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.spread_bb_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(data)
-    df = await add_dataframe_spread_bb(data, PARAMETERS['time_frame_minutes'], PARAMETERS['bollinger_deviation'],
-                                       PARAMETERS['bollinger_period'])
+        data['spread'] = await calculate_spread(data, PARAMETERS['coefficient_tool_1'],
+                                                PARAMETERS['coefficient_tool_2'])
+    df = await add_dataframe_spread_bb(
+        data,
+        PARAMETERS['time_frame_minutes'],
+        PARAMETERS['coefficient_tool_1'],
+        PARAMETERS['coefficient_tool_2'],
+        PARAMETERS['bollinger_deviation'],
+        PARAMETERS['bollinger_period'],
+    )
     plot = await add_plot_spread(df, data['tool_2'])
     await sending_signal_bb(callback, data, plot)
     await MainInfo.type_info.set()

@@ -42,7 +42,7 @@ async def command_tool(callback: types.CallbackQuery):
     await MainInfo.pare_tool.set()
     if callback.data == 'stocks':
         await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_menu())
-    if callback.data == 'futures':
+    if callback.data == 'spot_futures':
         await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=futures_menu())
     if callback.data == 'stocks_futures':
         await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_futures_menu())
@@ -57,15 +57,19 @@ async def command_futures_tool(callback: types.CallbackQuery):
     if callback.data == 'CNYRUBF':
         PARAMETERS['tool_1'] = await get_ticker_future('CR')
         PARAMETERS['tool_2'] = 'CNYRUBF'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1
     if callback.data == 'USDRUBF':
         PARAMETERS['tool_1'] = await get_ticker_future('Si')
         PARAMETERS['tool_2'] = 'USDRUBF'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1000
     if callback.data == 'EURRUBF':
         PARAMETERS['tool_1'] = await get_ticker_future('Eu')
         PARAMETERS['tool_2'] = 'EURRUBF'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1000
     if callback.data == 'GLDRUBF':
         PARAMETERS['tool_1'] = await get_ticker_future('GD')
         PARAMETERS['tool_2'] = 'GLDRUBF'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 1
     await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
 
 
@@ -76,12 +80,15 @@ async def command_stocks_futures_tool(callback: types.CallbackQuery):
     if callback.data == 'GAZPF':
         PARAMETERS['tool_1'] = await get_ticker_future('GZ')
         PARAMETERS['tool_2'] = 'GAZPF'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 100
     if callback.data == 'SBERF_R':
         PARAMETERS['tool_1'] = await get_ticker_future('SR')
         PARAMETERS['tool_2'] = 'SBERF'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 100
     if callback.data == 'SBERF_P':
         PARAMETERS['tool_1'] = await get_ticker_future('SP')
         PARAMETERS['tool_2'] = 'SBERF'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'] = 1, 100
     await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
 
 
@@ -111,6 +118,7 @@ async def command_spot_tool(callback: types.CallbackQuery):
     if callback.data == 'EURUSD':
         PARAMETERS['tool_1'] = await get_ticker_future('GD')
         PARAMETERS['tool_2'] = 'EURUSD'
+        PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_1'] = 1, 1
     await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_spot_tool())
 
 
@@ -123,7 +131,7 @@ def register_handlers_commands(dp: Dispatcher):
     dp.register_message_handler(command_start, Text(equals=['start', 'старт', 'info', 'инфо', 'help', 'помощь'],
                                                     ignore_case=True), state='*')
     dp.register_callback_query_handler(command_tool, lambda callback: callback.data in [
-        'stocks', 'futures', 'stocks_futures', 'spot'], state=MainInfo.type_tool)
+        'stocks', 'spot_futures', 'stocks_futures', 'spot'], state=MainInfo.type_tool)
     dp.register_callback_query_handler(command_futures_tool, lambda callback: callback.data in [
         'CNYRUBF', 'USDRUBF', 'EURRUBF', 'GLDRUBF'], state=MainInfo.pare_tool)
     dp.register_callback_query_handler(command_stocks_futures_tool, lambda callback: callback.data in [

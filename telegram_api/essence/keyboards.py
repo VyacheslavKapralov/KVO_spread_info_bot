@@ -6,8 +6,8 @@ from loguru import logger
 def main_menu():
     return InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(text='Акции', callback_data='stocks'),
-        InlineKeyboardButton(text='Фьючерсы', callback_data='futures'),
-        InlineKeyboardButton(text='Акции к фьючерсам', callback_data='stocks_futures'),
+        InlineKeyboardButton(text='Фьючерсы валютные', callback_data='spot_futures'),
+        InlineKeyboardButton(text='Фьючерсы на акции', callback_data='stocks_futures'),
         InlineKeyboardButton(text='Валюта к фьючерсам', callback_data='spot'),
     )
 

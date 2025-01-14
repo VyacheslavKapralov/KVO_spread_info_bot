@@ -13,6 +13,8 @@ PARAMETERS = {
     'sma_period': 200,
     'ema_period': 200,
     'atr_period': 200,
+    'coefficient_tool_1': 1,
+    'coefficient_tool_2': 1,
     'commands': {
         'start': 'Запустить бота',
         'main_menu': 'Вернуться в главное меню',

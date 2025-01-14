@@ -30,7 +30,7 @@ async def get_spread(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.spread_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(data)
+        data['spread'] = await calculate_spread(data, PARAMETERS['coefficient_tool_1'], PARAMETERS['coefficient_tool_2'])
     await sending_signal_spread(callback, data)
     await MainInfo.type_info.set()
 

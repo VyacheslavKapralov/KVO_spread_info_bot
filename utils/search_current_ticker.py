@@ -11,12 +11,22 @@ async def get_ticker_future(name: str) -> None or str:
 
 @logger.catch()
 async def get_all_futures_moex():
+    count = 0
     url = 'https://iss.moex.com/iss/engines/futures/markets/forts/securities.json'
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()["securities"]["data"]
-    else:
-        logger.info(f"Ошибка в get_all_futures_moex: {response.status_code} - {response.text}")
+    while True:
+        if count == 3:
+            return
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.json()["securities"]["data"]
+        except ConnectionResetError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
+        except requests.HTTPError as error:
+            logger.error(
+                f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - Response: {error.response.text}"
+            )
+        count += 1
 
 
 if __name__ == '__main__':
