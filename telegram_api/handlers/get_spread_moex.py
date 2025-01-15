@@ -24,15 +24,8 @@ async def set_spread_type(callback: types.CallbackQuery, state: FSMContext):
 @logger.catch()
 async def get_spread(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
-        await callback.message.answer(BotAnswers.spread_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(
-            data['coefficient_tool_1'],
-            data['coefficient_tool_2'],
-            data['spread_type'],
-            data['tool_1'],
-            data['tool_2']
-        )
+        data['spread'] = await calculate_spread(data)
     await sending_signal_spread(callback, data)
     await MainInfo.type_info.set()
 
@@ -40,11 +33,27 @@ async def get_spread(callback: types.CallbackQuery, state: FSMContext):
 @logger.catch()
 async def sending_signal_spread(callback: types.CallbackQuery, data):
     if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        await callback.message.answer(f"Спред {data['tool_1']} к {data['tool_2']}: {data['spread']}",
-                                      reply_markup=menu_futures_tool())
+        if not data.get('tool_3'):
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
+                                                          data['spread_type']),
+                reply_markup=menu_futures_tool())
+        else:
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
+                                                          data['spread_type'],
+                                                          data['tool_3']), reply_markup=menu_futures_tool())
     else:
-        await callback.message.answer(f"Спред {data['tool_1']} к {data['tool_2']}: {data['spread']}",
-                                      reply_markup=menu_spot_tool())
+        if not data.get('tool_3'):
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
+                                                          data['spread_type']),
+                reply_markup=menu_spot_tool())
+        else:
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
+                                                          data['spread_type'],
+                                                          data['tool_3']), reply_markup=menu_spot_tool())
 
 
 @logger.catch()

@@ -9,7 +9,7 @@ async def calculate_spread_money(tool_1: str, tool_2: str, coefficient_tool_1: i
                                  accuracy: int = 3) -> float or None:
     try:
         return round(await get_price_for_figi(tool_1) * coefficient_tool_1 -
-                       await get_price_for_figi(tool_2) * coefficient_tool_2, accuracy)
+                     await get_price_for_figi(tool_2) * coefficient_tool_2, accuracy)
     except ValueError and TypeError:
         return
 
@@ -19,7 +19,31 @@ async def calculate_spread_percent(tool_1: str, tool_2: str, coefficient_tool_1:
                                    accuracy: int = 2) -> float or None:
     try:
         return round((await get_price_for_figi(tool_1) * coefficient_tool_1 /
-                        await get_price_for_figi(tool_2) * coefficient_tool_2 - 1) * 100, accuracy)
+                      await get_price_for_figi(tool_2) * coefficient_tool_2 - 1) * 100, accuracy)
+    except ValueError and TypeError:
+        return
+
+
+@logger.catch()
+async def calculate_spread_tool_3_money(tool_1: str, tool_2: str, tool_3: str, coefficient_tool_1: int,
+                                        coefficient_tool_2: int, coefficient_tool_3: int,
+                                        accuracy: int = 3) -> float or None:
+    try:
+        return round(await get_price_for_figi(tool_1) * coefficient_tool_1 *
+                     await get_price_for_figi(tool_2) * coefficient_tool_2 -
+                     await get_price_for_figi(tool_3) * coefficient_tool_3, accuracy)
+    except ValueError and TypeError:
+        return
+
+
+@logger.catch()
+async def calculate_spread_tool_3_percent(tool_1: str, tool_2: str, tool_3: str, coefficient_tool_1: int,
+                                        coefficient_tool_2: int, coefficient_tool_3: int,
+                                        accuracy: int = 2) -> float or None:
+    try:
+        return round((await get_price_for_figi(tool_1) * coefficient_tool_1 *
+                      await get_price_for_figi(tool_2) * coefficient_tool_2 /
+                      await get_price_for_figi(tool_3) * coefficient_tool_3 - 1) * 100, accuracy)
     except ValueError and TypeError:
         return
 
@@ -36,15 +60,35 @@ async def get_price_for_figi(tool: str) -> float or None:
 
 
 @logger.catch()
-async def calculate_spread(coefficient_tool_1: int, coefficient_tool_2: int, spread_type: str,
-                           tool_1: str, tool_2: str) -> str or None:
-    if spread_type == 'percent':
-        spread = await calculate_spread_percent(tool_1, tool_2, coefficient_tool_1, coefficient_tool_2)
+async def calculate_spread(data: dict) -> str or None:
+    if data.get('tool_3') == 'GLDRUBF':
+        if data['spread_type'] == 'percent':
+            spread = await calculate_spread_tool_3_percent(
+                data['tool_1'],
+                data['tool_2'],
+                data['tool_3'],
+                data['coefficient_tool_1'],
+                data['coefficient_tool_2'],
+                data['coefficient_tool_3']
+            )
+            return spread
+        spread = await calculate_spread_tool_3_money(
+            data['tool_1'],
+            data['tool_2'],
+            data['tool_3'],
+            data['coefficient_tool_1'],
+            data['coefficient_tool_2'],
+            data['coefficient_tool_3']
+        )
         return spread
-    elif spread_type == 'money':
-        spread = await calculate_spread_money(tool_1, tool_2, coefficient_tool_1, coefficient_tool_2)
+    if data['spread_type'] == 'percent':
+        spread = await calculate_spread_percent(data['tool_1'], data['tool_2'], data['coefficient_tool_1'],
+                                              data['coefficient_tool_2'])
         return spread
-    return 'Неверный формат спреда'
+    elif data['spread_type'] == 'money':
+        spread = await calculate_spread_money(data['tool_1'], data['tool_2'], data['coefficient_tool_1'],
+                                              data['coefficient_tool_2'])
+        return spread
 
 
 if __name__ == '__main__':

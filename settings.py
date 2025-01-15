@@ -32,9 +32,10 @@ PARAMETERS = {
             'coefficient_2': 1000
         },
         'GLDRUBF': {
-            'pair': ['GD', 'GLDRUBF'],
-            'coefficient_1': 1,
-            'coefficient_2': 1
+            'pair': ['Si', 'GD', 'GLDRUBF'],
+            'coefficient_1': 0.001,
+            'coefficient_2': 1,
+            'coefficient_3': 31.1,
         },
         'GAZPF': {
             'pair': ['GZ', 'GAZPF'],

@@ -105,17 +105,26 @@ async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.Data
 
 
 @logger.catch()
+async def multiplication_data_frame(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
+                                    coefficient_tool_1: float, coefficient_tool_2: float) -> pd.DataFrame:
+    merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
+    data_frame = pd.DataFrame({'Date': merged_df['Date']})
+    data_frame['Open'] = round(merged_df['Open_1'] * coefficient_tool_1 * merged_df['Open_2'] * coefficient_tool_2, 3)
+    data_frame['High'] = round(merged_df['High_1'] * coefficient_tool_1 * merged_df['High_2'] * coefficient_tool_2, 3)
+    data_frame['Low'] = round(merged_df['Low_1'] * coefficient_tool_1 * merged_df['Low_2'] * coefficient_tool_2, 3)
+    data_frame['Close'] = round(merged_df['Close_1'] * coefficient_tool_1 * merged_df['Close_2'] * coefficient_tool_2, 3)
+    return data_frame
+
+
+@logger.catch()
 async def add_candles_tool(ticker: str, candle_interval: str) -> list:
     figi = await searching_ticker_figi(ticker)
     return await get_candles(figi=figi, candle_interval=candle_interval)
 
 
 @logger.catch()
-async def add_dataframe_spread_bb(candle_interval: str, coefficient_tool_1: int, coefficient_tool_2: int,
-                                  deviation: int, period: int, spread_type: str,
-                                  tool_1: str, tool_2: str) -> pd.DataFrame:
-    data_frame = await create_dataframe_spread(candle_interval, coefficient_tool_1, coefficient_tool_2, spread_type,
-                                               tool_1, tool_2)
+async def add_dataframe_spread_bb(candle_interval: str, data: dict, deviation: int, period: int) -> pd.DataFrame:
+    data_frame = await create_dataframe_spread(candle_interval, data)
     data_frame = await calculate_bollinger_bands_ta(data_frame, deviation, period)
     data_frame.dropna(inplace=True)
     data_frame = data_frame.set_index('Date')
@@ -123,13 +132,20 @@ async def add_dataframe_spread_bb(candle_interval: str, coefficient_tool_1: int,
 
 
 @logger.catch()
-async def create_dataframe_spread(candle_interval: str, coefficient_tool_1: int, coefficient_tool_2: int,
-                                  spread_type: str, tool_1: str, tool_2: str) -> pd.DataFrame:
-    candles_1 = await add_candles_tool(tool_1, candle_interval)
-    candles_2 = await add_candles_tool(tool_2, candle_interval)
+async def create_dataframe_spread(candle_interval: str, data: dict) -> pd.DataFrame:
+    candles_1 = await add_candles_tool(data['tool_1'], candle_interval)
+    candles_2 = await add_candles_tool(data['tool_2'], candle_interval)
     data_frame_1 = await add_dataframe_pandas(candles_1)
     data_frame_2 = await add_dataframe_pandas(candles_2)
-    return await get_dataframe_spread(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2, spread_type)
+    coefficient_tool_1 = data['coefficient_tool_1']
+    coefficient_tool_2 = data['coefficient_tool_2']
+    if data.get('tool_3'):
+        data_frame_1 = await multiplication_data_frame(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2)
+        candles_3 = await add_candles_tool(data['tool_3'], candle_interval)
+        data_frame_2 = await add_dataframe_pandas(candles_3)
+        coefficient_tool_1 = 1
+        coefficient_tool_2 = data['coefficient_tool_3']
+    return await get_dataframe_spread(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2, data['spread_type'])
 
 
 if __name__ == '__main__':

@@ -16,9 +16,7 @@ async def get_ticker_future(name: str) -> None or str:
 async def get_all_futures_moex() -> list or None:
     count = 0
     url = 'https://iss.moex.com/iss/engines/futures/markets/forts/securities.json'
-    while True:
-        if count == 3:
-            return
+    while count < 3:
         try:
             response = requests.get(url)
             response.raise_for_status()

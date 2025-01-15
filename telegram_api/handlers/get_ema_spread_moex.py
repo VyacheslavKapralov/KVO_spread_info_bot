@@ -6,7 +6,6 @@ from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
 from telegram_api.essence.keyboards import menu_spread_type, menu_futures_tool, menu_spot_tool
 from settings import PARAMETERS
-from utils.calculate_spread import calculate_spread
 from utils.data_frame_pandas import calculate_ema, create_dataframe_spread
 
 
@@ -26,23 +25,8 @@ async def set_spread_type_ema(callback: types.CallbackQuery, state: FSMContext):
 @logger.catch()
 async def get_spread_ema(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
-        await callback.message.answer(BotAnswers.spread_ema_moex(data['tool_1'], data['tool_2'], data['spread_type']))
         await callback.message.answer(BotAnswers.expectation_answer())
-        data['spread'] = await calculate_spread(
-            data['coefficient_tool_1'],
-            data['coefficient_tool_2'],
-            data['spread_type'],
-            data['tool_1'],
-            data['tool_2']
-        )
-        df = await create_dataframe_spread(
-            PARAMETERS['time_frame_minutes'],
-            data['coefficient_tool_1'],
-            data['coefficient_tool_2'],
-            data['spread_type'],
-            data['tool_1'],
-            data['tool_2']
-        )
+        df = await create_dataframe_spread(PARAMETERS['time_frame_minutes'], data)
         df_ema = await calculate_ema(df, PARAMETERS['ema_period'])
         data['ema'] = round(df_ema['ema'].iloc[-1], 3)
     await sending_signal_ema(callback, data)
@@ -52,11 +36,23 @@ async def get_spread_ema(callback: types.CallbackQuery, state: FSMContext):
 @logger.catch()
 async def sending_signal_ema(callback: types.CallbackQuery, data: dict):
     if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        await callback.message.answer(f"EMA спреда {data['tool_1']} к {data['tool_2']}: {data['ema']}",
-                                      reply_markup=menu_futures_tool())
+        if not data.get('tool_3'):
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tool_1'], data['tool_2'], data['spread_type']),
+                reply_markup=menu_futures_tool())
+        else:
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tool_1'], data['tool_2'], data['spread_type'],
+                                                          data['tool_3']), reply_markup=menu_futures_tool())
     else:
-        await callback.message.answer(f"EMA спреда {data['tool_1']} к {data['tool_2']}: {data['ema']}",
-                                      reply_markup=menu_spot_tool())
+        if not data.get('tool_3'):
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tool_1'], data['tool_2'], data['spread_type']),
+                reply_markup=menu_spot_tool())
+        else:
+            await callback.message.answer(
+                BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tool_1'], data['tool_2'], data['spread_type'],
+                                                          data['tool_3']), reply_markup=menu_spot_tool())
 
 
 @logger.catch()

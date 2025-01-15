@@ -91,6 +91,24 @@ async def command_stocks_tool(callback: types.CallbackQuery, state: FSMContext):
 
 
 @logger.catch()
+async def command_gold_futures_tool(callback: types.CallbackQuery, state: FSMContext):
+    await MainInfo.type_info.set()
+    tool_1 = await get_ticker_future(PARAMETERS['futures_pairs'].get(callback.data)['pair'][0])
+    tool_2 = await get_ticker_future(PARAMETERS['futures_pairs'].get(callback.data)['pair'][1])
+    if tool_1 and tool_2:
+        async with state.proxy() as data:
+            data['type_tool'] = 'stocks_futures'
+            data['tool_1'] = tool_1
+            data['tool_2'] = tool_2
+            data['tool_3'] = PARAMETERS['futures_pairs'][callback.data]['pair'][2]
+            data['coefficient_tool_1'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_1']
+            data['coefficient_tool_2'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_2']
+            data['coefficient_tool_3'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_3']
+        return await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
+    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
+
+
+@logger.catch()
 async def command_spot_tool(callback: types.CallbackQuery, state: FSMContext):  # функция не готова
     await MainInfo.type_info.set()
     # tool_1 = await get_ticker_future(PARAMETERS['spots_pairs'].get(callback.data))
@@ -116,7 +134,9 @@ def register_handlers_commands(dp: Dispatcher):
     dp.register_callback_query_handler(command_tool, lambda callback: callback.data in [
         'stocks', 'spot_futures', 'stocks_futures', 'spot'], state=MainInfo.type_tool)
     dp.register_callback_query_handler(command_futures_tool, lambda callback: callback.data in [
-        'CNYRUBF', 'USDRUBF', 'EURRUBF', 'GLDRUBF'], state=MainInfo.pare_tool)
+        'CNYRUBF', 'USDRUBF', 'EURRUBF'], state=MainInfo.pare_tool)
+    dp.register_callback_query_handler(command_gold_futures_tool,
+                                       lambda callback: callback.data == 'GLDRUBF', state=MainInfo.pare_tool)
     dp.register_callback_query_handler(command_stocks_futures_tool, lambda callback: callback.data in [
         'GAZPF', 'SBERF_R', 'SBERF_P'], state=MainInfo.pare_tool)
     dp.register_callback_query_handler(command_stocks_tool, lambda callback: callback.data in [

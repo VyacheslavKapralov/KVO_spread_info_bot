@@ -27,7 +27,10 @@ async def set_position(message: types.Message, state: FSMContext):
 async def get_funding(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         await message.answer(BotAnswers.expectation_answer())
-        data['funding'] = await calculate_funding(data['tool_2'])
+        if data.get('tool_3'):
+            data['funding'] = await calculate_funding(data['tool_3'])
+        else:
+            data['funding'] = await calculate_funding(data['tool_2'])
     await sending_signal_funding(message, data)
     await MainInfo.type_info.set()
 
@@ -35,11 +38,25 @@ async def get_funding(message: types.Message, state: FSMContext):
 @logger.catch()
 async def sending_signal_funding(message: types.Message, data: dict):
     if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        await message.answer(f"Фандинг {data['tool_2']}: {data['funding'] * data['position']}",
-                             reply_markup=menu_futures_tool())
+        if not data.get('tool_3'):
+            await message.answer(
+                BotAnswers().result_calculation_indicator(data['funding'], 'Фандинг', data['tool_1'], data['tool_2'],
+                                                          data['spread_type']), reply_markup=menu_futures_tool())
+        else:
+            await message.answer(
+                BotAnswers().result_calculation_indicator(data['funding'], 'Фандинг', data['tool_1'], data['tool_2'],
+                                                          data['spread_type'],
+                                                          data['tool_3']), reply_markup=menu_futures_tool())
     else:
-        await message.answer(f"Фандинг {data['tool_2']}: {data['funding'] * data['position']}",
-                             reply_markup=menu_spot_tool())
+        if not data.get('tool_3'):
+            await message.answer(
+                BotAnswers().result_calculation_indicator(data['funding'], 'Фандинг', data['tool_1'], data['tool_2'],
+                                                          data['spread_type']), reply_markup=menu_spot_tool())
+        else:
+            await message.answer(
+                BotAnswers().result_calculation_indicator(data['funding'], 'Фандинг', data['tool_1'], data['tool_2'],
+                                                          data['spread_type'],
+                                                          data['tool_3']), reply_markup=menu_spot_tool())
 
 
 @logger.catch()

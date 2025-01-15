@@ -4,7 +4,7 @@ from aiogram.types import BotCommand, BotCommandScope
 from aiogram.utils import executor, exceptions
 from loguru import logger
 
-# from logs.start_log import log_telegram_bot
+from logs.start_log import log_telegram_bot
 from settings import PARAMETERS
 from telegram_api.connect_telegrambot import bot, dp
 from telegram_api.handlers import (
@@ -40,7 +40,7 @@ async def main(_):
     while count > 0:
         try:
             await set_bot_commands()
-            # log_telegram_bot()
+            log_telegram_bot()
             commands.register_handlers_commands(dp)
             get_spread_moex.register_handlers_command_spread(dp)
             get_ema_spread_moex.register_handlers_command_ema(dp)
@@ -48,7 +48,7 @@ async def main(_):
             get_plot_spread_bb.register_handlers_command_bollinger_bands(dp)
             get_sma_spread_moex.register_handlers_command_sma(dp)
             get_atr_spread_moex.register_handlers_command_atr(dp)
-            print('Start KVO_CNY_spread_info_bot')
+            print('Start KVO_spread_info_bot')
             break
         except exceptions.NetworkError as error:
             logger.error(f"Сетевая ошибка: {error} --- {error.with_traceback()}")
