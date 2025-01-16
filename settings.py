@@ -35,7 +35,7 @@ PARAMETERS = {
             'pair': ['Si', 'GD', 'GLDRUBF'],
             'coefficient_1': 0.001,
             'coefficient_2': 1,
-            'coefficient_3': 31.1,
+            'coefficient_3': 31.105,
         },
         'GAZPF': {
             'pair': ['GZ', 'GAZPF'],

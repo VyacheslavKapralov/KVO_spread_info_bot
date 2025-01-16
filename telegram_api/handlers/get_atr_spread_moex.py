@@ -36,23 +36,17 @@ async def get_spread_atr(callback: types.CallbackQuery, state: FSMContext):
 @logger.catch()
 async def sending_signal_atr(callback: types.CallbackQuery, data: dict):
     if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        if not data.get('tool_3'):
-            await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['atr'], 'ATR', data['tool_1'], data['tool_2'], data['spread_type']),
-                reply_markup=menu_futures_tool())
-        else:
-            await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['atr'], 'ATR', data['tool_1'], data['tool_2'], data['spread_type'],
-                                                          data['tool_3']), reply_markup=menu_futures_tool())
+        keyboard = menu_futures_tool
     else:
-        if not data.get('tool_3'):
-            await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['atr'], 'ATR', data['tool_1'], data['tool_2'], data['spread_type']),
-                reply_markup=menu_spot_tool())
-        else:
-            await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['atr'], 'ATR', data['tool_1'], data['tool_2'], data['spread_type'],
-                                                          data['tool_3']), reply_markup=menu_spot_tool())
+        keyboard = menu_spot_tool
+    if not data.get('tool_3'):
+        await callback.message.answer(
+            BotAnswers().result_calculation_indicator(data['atr'], 'ATR', data['tool_1'], data['tool_2'],
+                                                      data['spread_type']), reply_markup=keyboard())
+    else:
+        await callback.message.answer(
+            BotAnswers().result_calculation_indicator(data['atr'], 'ATR', data['tool_1'], data['tool_2'],
+                                                      data['spread_type'],  data['tool_3']), reply_markup=keyboard())
 
 
 @logger.catch()

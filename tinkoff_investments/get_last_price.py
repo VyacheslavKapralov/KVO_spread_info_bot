@@ -9,18 +9,22 @@ TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
 
 @logger.catch()
 async def get_last_price(figi: str) -> str or None:
-    with Client(TOKEN) as client:
-        try:
-            response = client.market_data.get_order_book(figi=figi, depth=1)
-            nano = format_nano(response.last_price.nano)
-            last_price = f'{response.last_price.units}.{nano}'
-            return last_price
-        except RequestError as error:
-            logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
+    count = 0
+    while count < 3:
+        with Client(TOKEN) as client:
+            try:
+                response = client.market_data.get_order_book(figi=figi, depth=1)
+                nano = await format_nano(response.last_price.nano)
+                last_price = f'{response.last_price.units}.{nano}'
+                return last_price
+            except RequestError as error:
+                logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
+                count += 1
+                continue
 
 
 @logger.catch()
-def format_nano(nano: int) -> str:
+async def format_nano(nano: int) -> str:
     number_str = str(nano)
     while len(number_str) < 9:
         number_str = '0' + number_str

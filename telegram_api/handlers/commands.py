@@ -32,7 +32,7 @@ async def command_back_main_menu_message(message: types.Message):
 
 @logger.catch()
 async def command_start(message: types.Message):
-    await MainInfo.type_tool.set()
+    await command_back_main_menu_message(message)
     await message.answer(BotAnswers().start_message(message.from_user.first_name), reply_markup=main_menu())
 
 
@@ -61,7 +61,8 @@ async def command_futures_tool(callback: types.CallbackQuery, state: FSMContext)
             data['coefficient_tool_1'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_1']
             data['coefficient_tool_2'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_2']
         return await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
-    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
+    await callback.message.answer(BotAnswers.not_get_ticker(), reply_markup=main_menu())
+    await MainInfo.type_info.set()
 
 
 @logger.catch()
@@ -76,7 +77,8 @@ async def command_stocks_futures_tool(callback: types.CallbackQuery, state: FSMC
             data['coefficient_tool_1'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_1']
             data['coefficient_tool_2'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_2']
         return await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
-    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
+    await callback.message.answer(BotAnswers.not_get_ticker(), reply_markup=main_menu())
+    await MainInfo.type_tool.set()
 
 
 @logger.catch()
@@ -105,7 +107,8 @@ async def command_gold_futures_tool(callback: types.CallbackQuery, state: FSMCon
             data['coefficient_tool_2'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_2']
             data['coefficient_tool_3'] = PARAMETERS['futures_pairs'][callback.data]['coefficient_3']
         return await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_tool())
-    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
+    await callback.message.answer(BotAnswers.not_get_ticker(), reply_markup=main_menu())
+    await MainInfo.type_tool.set()
 
 
 @logger.catch()
@@ -120,7 +123,8 @@ async def command_spot_tool(callback: types.CallbackQuery, state: FSMContext):  
             data['tool_2'] = 'EURUSD'
             data['coefficient_tool_1'], data['coefficient_tool_2'] = 1, 1
         await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_spot_tool())
-    await callback.message.answer(BotAnswers.tool_1_futures(), reply_markup=main_menu())
+    await callback.message.answer(BotAnswers.not_get_ticker(), reply_markup=main_menu())
+    await MainInfo.type_tool.set()
 
 
 @logger.catch()

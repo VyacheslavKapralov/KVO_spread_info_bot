@@ -13,7 +13,7 @@ class BotAnswers:
         return 'В разработке...'
 
     @staticmethod
-    def tool_1_futures() -> str:
+    def not_get_ticker() -> str:
         return ('При попытке получить актуальный тикер фьючерсного контракта не удалось связаться с биржей. '
                 'Повторите попытку позже.')
 
@@ -27,6 +27,12 @@ class BotAnswers:
         if spread_type == 'money':
             return f"{indicator_type} спреда {tool_1} - {tool_2}: {number} руб."
         return f"{indicator_type} спреда {tool_1} / {tool_2}: {number} %"
+
+    @staticmethod
+    def result_calculation_funding(number: float, tool_2: str, tool_3: str = None) -> str:
+        if tool_3:
+            tool_2 = tool_3
+        return f"Фандинг инструмента {tool_2}: {number} руб."
 
     @staticmethod
     def spread_type() -> str:

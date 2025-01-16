@@ -44,25 +44,17 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
 @logger.catch()
 async def sending_signal_bb(callback: types.CallbackQuery, data, plot):
     if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        if not data.get('tool_3'):
-            await callback.message.answer_photo(photo=plot,
-                                                caption=BotAnswers.result_bb(data['tool_1'], data['tool_2']),
-                                                reply_markup=menu_futures_tool())
-        else:
-            await callback.message.answer_photo(photo=plot,
-                                                caption=BotAnswers.result_bb(data['tool_1'], data['tool_2'],
-                                                                             data['tool_3']),
-                                                reply_markup=menu_futures_tool())
+        keyboard = menu_futures_tool
     else:
-        if not data.get('tool_3'):
-            await callback.message.answer_photo(photo=plot,
-                                                caption=BotAnswers.result_bb(data['tool_1'], data['tool_2']),
-                                                reply_markup=menu_spot_tool())
-        else:
-            await callback.message.answer_photo(photo=plot,
-                                                caption=BotAnswers.result_bb(data['tool_1'], data['tool_2'],
-                                                                             data['tool_3']),
-                                                reply_markup=menu_spot_tool())
+        keyboard = menu_spot_tool
+    if not data.get('tool_3'):
+        await callback.message.answer_photo(photo=plot,
+                                            caption=BotAnswers.result_bb(data['tool_1'], data['tool_2']),
+                                            reply_markup=keyboard())
+    else:
+        await callback.message.answer_photo(photo=plot,
+                                            caption=BotAnswers.result_bb(data['tool_1'], data['tool_2'],
+                                                                         data['tool_3']), reply_markup=keyboard())
 
 
 @logger.catch()

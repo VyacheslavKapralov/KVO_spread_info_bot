@@ -1,7 +1,9 @@
 from datetime import timedelta
+
 from loguru import logger
 
 from tinkoff.invest import CandleInterval, Client
+from tinkoff.invest.exceptions import RequestError
 from tinkoff.invest.utils import now
 
 from settings import TinkoffSettings
@@ -14,23 +16,30 @@ TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
 async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -> list:
     interval = await get_candle_interval(candle_interval)
     candles_list = []
-    with Client(TOKEN) as client:
-        for candle in client.get_all_candles(
-                instrument_id=figi,
-                from_=now() - timedelta(days=interval_day),
-                to=now(),
-                interval=interval,
-        ):
-            candles_list.append([
-                f'{candle.time.year}-{candle.time.month}-{candle.time.day} '
-                f'{candle.time.hour}:{candle.time.minute}:{candle.time.second}',
-                f'{candle.open.units}.{format_nano(candle.open.nano)}',
-                f'{candle.high.units}.{format_nano(candle.high.nano)}',
-                f'{candle.low.units}.{format_nano(candle.low.nano)}',
-                f'{candle.close.units}.{format_nano(candle.close.nano)}',
-                candle.volume
-            ])
-    return candles_list
+    count = 0
+    while count < 3:
+        try:
+            with Client(TOKEN) as client:
+                for candle in client.get_all_candles(
+                        instrument_id=figi,
+                        from_=now() - timedelta(days=interval_day),
+                        to=now(),
+                        interval=interval,
+                ):
+                    candles_list.append([
+                        f'{candle.time.year}-{candle.time.month}-{candle.time.day} '
+                        f'{candle.time.hour}:{candle.time.minute}:{candle.time.second}',
+                        f'{candle.open.units}.{await format_nano(candle.open.nano)}',
+                        f'{candle.high.units}.{await format_nano(candle.high.nano)}',
+                        f'{candle.low.units}.{await format_nano(candle.low.nano)}',
+                        f'{candle.close.units}.{await format_nano(candle.close.nano)}',
+                        candle.volume
+                    ])
+            return candles_list
+        except RequestError as error:
+            logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
+            count += 1
+            continue
 
 
 @logger.catch()

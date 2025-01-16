@@ -85,22 +85,37 @@ async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.Data
     data_frame_3 = pd.DataFrame({'Date': merged_df['Date']})
     if spread_type == 'money':
         data_frame_3['Open'] = round(
-            merged_df['Open_1'] * coefficient_tool_1 - merged_df['Open_2'] * coefficient_tool_2, 3)
+            merged_df['Open_1'] * coefficient_tool_1 - merged_df['Open_2'] * coefficient_tool_2,
+            3
+        )
         data_frame_3['High'] = round(
-            merged_df['High_1'] * coefficient_tool_1 - merged_df['High_2'] * coefficient_tool_2, 3)
-        data_frame_3['Low'] = round(
-            merged_df['Low_1'] * coefficient_tool_1 - merged_df['Low_2'] * coefficient_tool_2, 3)
+            merged_df['High_1'] * coefficient_tool_1 - merged_df['High_2'] * coefficient_tool_2,
+            3
+        )
+        data_frame_3['Low'] = round(merged_df['Low_1'] * coefficient_tool_1 - merged_df['Low_2'] * coefficient_tool_2,
+                                    3
+                                    )
         data_frame_3['Close'] = round(
-            merged_df['Close_1'] * coefficient_tool_1 - merged_df['Close_2'] * coefficient_tool_2, 3)
+            merged_df['Close_1'] * coefficient_tool_1 - merged_df['Close_2'] * coefficient_tool_2,
+            3
+        )
     elif spread_type == 'percent':
-        data_frame_3['Open'] = round((merged_df['Open_1'] * coefficient_tool_1 /
-                                      merged_df['Open_2'] * coefficient_tool_2 - 1) * 100, 3)
-        data_frame_3['High'] = round((merged_df['High_1'] * coefficient_tool_1 /
-                                      merged_df['High_2'] * coefficient_tool_2 - 1) * 100, 3)
-        data_frame_3['Low'] = round((merged_df['Low_1'] * coefficient_tool_1 /
-                                     merged_df['Low_2'] * coefficient_tool_2 - 1) * 100, 3)
-        data_frame_3['Close'] = round((merged_df['Close_1'] * coefficient_tool_1 /
-                                       merged_df['Close_2'] * coefficient_tool_2 - 1) * 100, 3)
+        data_frame_3['Open'] = round(
+            ((merged_df['Open_1'] * coefficient_tool_1) / (merged_df['Open_2'] * coefficient_tool_2) - 1) * 100,
+            2
+        )
+        data_frame_3['High'] = round(
+            ((merged_df['High_1'] * coefficient_tool_1) / (merged_df['High_2'] * coefficient_tool_2) - 1) * 100,
+            2
+        )
+        data_frame_3['Low'] = round(
+            ((merged_df['Low_1'] * coefficient_tool_1) / (merged_df['Low_2'] * coefficient_tool_2) - 1) * 100,
+            2
+        )
+        data_frame_3['Close'] = round(
+            ((merged_df['Close_1'] * coefficient_tool_1) / (merged_df['Close_2'] * coefficient_tool_2) - 1) * 100,
+            2
+        )
     return data_frame_3
 
 
@@ -108,12 +123,12 @@ async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.Data
 async def multiplication_data_frame(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
                                     coefficient_tool_1: float, coefficient_tool_2: float) -> pd.DataFrame:
     merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
-    data_frame = pd.DataFrame({'Date': merged_df['Date']})
-    data_frame['Open'] = round(merged_df['Open_1'] * coefficient_tool_1 * merged_df['Open_2'] * coefficient_tool_2, 3)
-    data_frame['High'] = round(merged_df['High_1'] * coefficient_tool_1 * merged_df['High_2'] * coefficient_tool_2, 3)
-    data_frame['Low'] = round(merged_df['Low_1'] * coefficient_tool_1 * merged_df['Low_2'] * coefficient_tool_2, 3)
-    data_frame['Close'] = round(merged_df['Close_1'] * coefficient_tool_1 * merged_df['Close_2'] * coefficient_tool_2, 3)
-    return data_frame
+    df = pd.DataFrame({'Date': merged_df['Date']})
+    df['Open'] = round(merged_df['Open_1'] * coefficient_tool_1 * merged_df['Open_2'] * coefficient_tool_2, 3)
+    df['High'] = round(merged_df['High_1'] * coefficient_tool_1 * merged_df['High_2'] * coefficient_tool_2, 3)
+    df['Low'] = round(merged_df['Low_1'] * coefficient_tool_1 * merged_df['Low_2'] * coefficient_tool_2, 3)
+    df['Close'] = round(merged_df['Close_1'] * coefficient_tool_1 * merged_df['Close_2'] * coefficient_tool_2, 3)
+    return df
 
 
 @logger.catch()
@@ -140,12 +155,14 @@ async def create_dataframe_spread(candle_interval: str, data: dict) -> pd.DataFr
     coefficient_tool_1 = data['coefficient_tool_1']
     coefficient_tool_2 = data['coefficient_tool_2']
     if data.get('tool_3'):
-        data_frame_1 = await multiplication_data_frame(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2)
+        data_frame_1 = await multiplication_data_frame(data_frame_1, data_frame_2, coefficient_tool_1,
+                                                       coefficient_tool_2)
         candles_3 = await add_candles_tool(data['tool_3'], candle_interval)
         data_frame_2 = await add_dataframe_pandas(candles_3)
         coefficient_tool_1 = 1
         coefficient_tool_2 = data['coefficient_tool_3']
-    return await get_dataframe_spread(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2, data['spread_type'])
+    return await get_dataframe_spread(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2,
+                                      data['spread_type'])
 
 
 if __name__ == '__main__':

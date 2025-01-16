@@ -48,7 +48,6 @@ async def main(_):
             get_plot_spread_bb.register_handlers_command_bollinger_bands(dp)
             get_sma_spread_moex.register_handlers_command_sma(dp)
             get_atr_spread_moex.register_handlers_command_atr(dp)
-            print('Start KVO_spread_info_bot')
             break
         except exceptions.NetworkError as error:
             logger.error(f"Сетевая ошибка: {error} --- {error.with_traceback()}")
