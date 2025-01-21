@@ -1,3 +1,5 @@
+import asyncio
+
 from loguru import logger
 from tinkoff.invest import Client
 from tinkoff.invest.exceptions import RequestError
@@ -20,6 +22,7 @@ async def get_last_price(figi: str) -> str or None:
             except RequestError as error:
                 logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
                 count += 1
+                await asyncio.sleep(5)
                 continue
 
 

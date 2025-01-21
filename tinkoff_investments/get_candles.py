@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 
 from loguru import logger
@@ -39,6 +40,7 @@ async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -
         except RequestError as error:
             logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
             count += 1
+            await asyncio.sleep(5)
             continue
 
 

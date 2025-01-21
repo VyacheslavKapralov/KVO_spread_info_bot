@@ -19,13 +19,19 @@ from utils.search_current_ticker import get_ticker_future
 
 
 @logger.catch()
-async def command_back_main_menu(callback: types.CallbackQuery):
+async def command_back_main_menu(callback: types.CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state:
+        await state.finish()
     await MainInfo.type_tool.set()
     await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=main_menu())
 
 
 @logger.catch()
-async def command_back_main_menu_message(message: types.Message):
+async def command_back_main_menu_message(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state:
+        await state.finish()
     await MainInfo.type_tool.set()
     await message.answer(BotAnswers.command_back_main_menu(), reply_markup=main_menu())
 
@@ -40,13 +46,13 @@ async def command_start(message: types.Message):
 async def command_tool(callback: types.CallbackQuery):
     await MainInfo.pare_tool.set()
     if callback.data == 'stocks':
-        await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_menu())
+        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_menu())
     if callback.data == 'spot_futures':
-        await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=futures_menu())
+        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=futures_menu())
     if callback.data == 'stocks_futures':
-        await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_futures_menu())
+        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_futures_menu())
     if callback.data == 'spot':
-        await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=spot_menu())
+        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=spot_menu())
 
 
 @logger.catch()

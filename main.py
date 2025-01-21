@@ -40,7 +40,6 @@ async def main(_):
     while count > 0:
         try:
             await set_bot_commands()
-            log_telegram_bot()
             commands.register_handlers_commands(dp)
             get_spread_moex.register_handlers_command_spread(dp)
             get_ema_spread_moex.register_handlers_command_ema(dp)
@@ -58,4 +57,5 @@ async def main(_):
 
 
 if __name__ == '__main__':
+    log_telegram_bot()
     executor.start_polling(dp, skip_updates=True, on_startup=main)

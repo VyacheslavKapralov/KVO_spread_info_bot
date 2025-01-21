@@ -1,3 +1,5 @@
+import asyncio
+
 import pandas as pd
 
 from loguru import logger
@@ -63,6 +65,7 @@ async def get_figi_to_tinkoff() -> pd.DataFrame:
         except RequestError as error:
             logger.error(f"{error}: {error.code} - {error.metadata} --- {error.details}")
             count += 1
+            await asyncio.sleep(5)
             continue
 
 
