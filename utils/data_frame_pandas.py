@@ -142,6 +142,8 @@ async def add_dataframe_spread_bb(candle_interval: str, data: dict, deviation: i
     data_frame = await create_dataframe_spread(candle_interval, data)
     data_frame = await calculate_bollinger_bands_ta(data_frame, deviation, period)
     data_frame.dropna(inplace=True)
+    start_time = data_frame['Date'].iloc[-1] - pd.Timedelta(days=5)
+    data_frame = data_frame.loc[data_frame['Date'] >= start_time]
     data_frame = data_frame.set_index('Date')
     return data_frame
 
