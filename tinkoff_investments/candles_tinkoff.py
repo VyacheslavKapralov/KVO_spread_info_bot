@@ -8,7 +8,7 @@ from tinkoff.invest.exceptions import RequestError
 from tinkoff.invest.utils import now
 
 from settings import TinkoffSettings
-from tinkoff_investments.get_last_price import format_nano
+from tinkoff_investments.last_price_tinkoff import format_nano
 
 TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
 

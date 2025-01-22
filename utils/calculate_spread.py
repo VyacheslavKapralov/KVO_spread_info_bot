@@ -2,6 +2,7 @@ from loguru import logger
 
 from tinkoff_investments.get_figi_for_ticker import searching_ticker_figi
 from tinkoff_investments.get_last_price import get_last_price
+from moex_api.last_price_moex import get_last_price_moex
 
 
 @logger.catch()
@@ -27,11 +28,11 @@ async def calculate_spread_percent(tool_1: str, tool_2: str, coefficient_tool_1:
 @logger.catch()
 async def calculate_spread_tool_3_money(tool_1: str, tool_2: str, tool_3: str, coefficient_tool_1: int,
                                         coefficient_tool_2: int, coefficient_tool_3: int,
-                                        accuracy: int = 3) -> float or None:
+                                        accuracy: int = 2) -> float or None:
     try:
         return round(await get_price_for_figi(tool_1) * coefficient_tool_1 *
-                     await get_price_for_figi(tool_2) * coefficient_tool_2 -
-                     await get_price_for_figi(tool_3) * coefficient_tool_3, accuracy)
+                     await get_price_for_figi(tool_2) * coefficient_tool_2 / coefficient_tool_3 -
+                     await get_price_for_figi(tool_3), accuracy)
     except ValueError and TypeError:
         return
 
@@ -51,11 +52,9 @@ async def calculate_spread_tool_3_percent(tool_1: str, tool_2: str, tool_3: str,
 @logger.catch()
 async def get_price_for_figi(tool: str) -> float or None:
     ticker = await searching_ticker_figi(tool)
-    if not ticker:
-        return
     last_price = await get_last_price(ticker)
-    if not last_price:
-        return
+    if not ticker or not last_price:
+        return await get_last_price_moex(tool)
     return float(last_price)
 
 
