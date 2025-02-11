@@ -4,7 +4,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_spread_type, menu_futures_tool, menu_spot_tool
+from telegram_api.essence.keyboards import menu_spread_type, menu_futures_ticker, menu_spot_ticker
 from utils.calculate_spread import calculate_spread
 
 
@@ -32,32 +32,32 @@ async def get_spread(callback: types.CallbackQuery, state: FSMContext):
 
 @logger.catch()
 async def sending_signal_spread(callback: types.CallbackQuery, data):
-    if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        if not data.get('tool_3'):
+    if data['type_ticker'] == 'futures' or data['type_ticker'] == 'stocks_futures':
+        if len(data['tickers']) == 2:
             await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
-                                                          data['spread_type']),
-                reply_markup=menu_futures_tool())
-        else:
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tickers'][0],
+                                                          data['tickers'][1], data['spread_type']),
+                reply_markup=menu_futures_ticker())
+        elif len(data['tickers']) == 3:
             await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
-                                                          data['spread_type'],
-                                                          data['tool_3']), reply_markup=menu_futures_tool())
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tickers'][0],
+                                                          data['tickers'][1], data['spread_type'], data['tickers'][2]),
+                reply_markup=menu_futures_ticker())
     else:
-        if not data.get('tool_3'):
+        if not data.get('ticker_3'):
             await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
-                                                          data['spread_type']),
-                reply_markup=menu_spot_tool())
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tickers'][0],
+                                                          data['tickers'][1], data['spread_type']),
+                reply_markup=menu_spot_ticker())
         else:
             await callback.message.answer(
-                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tool_1'], data['tool_2'],
-                                                          data['spread_type'],
-                                                          data['tool_3']), reply_markup=menu_spot_tool())
+                BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tickers'][0],
+                                                          data['tickers'][1], data['spread_type'], data['tickers'][2]),
+                reply_markup=menu_spot_ticker())
 
 
 @logger.catch()
-def register_handlers_command_spread(dp: Dispatcher):
+async def register_handlers_command_spread(dp: Dispatcher):
     dp.register_callback_query_handler(get_spread_moex, lambda callback: callback.data == 'spread',
                                        state=MainInfo.type_info)
     dp.register_callback_query_handler(set_spread_type, lambda callback: callback.data in ['money', 'percent'],

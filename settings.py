@@ -18,46 +18,42 @@ PARAMETERS = {
     'futures_pairs': {
         'CNYRUBF': {
             'pair': ['CR', 'CNYRUBF'],
-            'coefficient_1': 1,
-            'coefficient_2': 1
-        },
-        'USDRUBF': {
-            'pair': ['Si', 'USDRUBF'],
-            'coefficient_1': 1,
-            'coefficient_2': 1000
+            'coefficients': [1, 1]
         },
         'EURRUBF': {
             'pair': ['Eu', 'EURRUBF'],
-            'coefficient_1': 1,
-            'coefficient_2': 1000
-        },
-        'GLDRUBF': {
-            'pair': ['Si', 'GD', 'GLDRUBF'],
-            'coefficient_1': 0.001,
-            'coefficient_2': 1,
-            'coefficient_3': 31.105,
+            'coefficients': [1, 1000]
         },
         'GAZPF': {
             'pair': ['GZ', 'GAZPF'],
-            'coefficient_1': 1,
-            'coefficient_2': 100
+            'coefficients': [1, 100]
         },
-        'SBERF_R': {
-            'pair': ['SR', 'SBERF'],
-            'coefficient_1': 1,
-            'coefficient_2': 100
+        'GLDRUBF': {
+            'pair': ['Si', 'GD', 'GLDRUBF'],
+            'coefficients': [0.001, 1, 31.105]
+        },
+        'IMOEXF': {
+            'pair': ['MX', 'IMOEXF'],
+            'coefficients': [1, 10]
         },
         'SBERF_P': {
             'pair': ['SP', 'SBERF'],
-            'coefficient_1': 1,
-            'coefficient_2': 100
+            'coefficients': [1, 100]
+        },
+        'SBERF_R': {
+            'pair': ['SR', 'SBERF'],
+            'coefficients': [1, 100]
+        },
+        'USDRUBF': {
+            'pair': ['Si', 'USDRUBF'],
+            'coefficients': [1, 100]
         },
     },
     'stocks_pairs': {
-        'TATN': 'TATNP',
         'MTLR': 'MTLRP',
         'RTKM': 'RTKMP',
         'SBER': 'SBERP',
+        'TATN': 'TATNP',
     },
     'spots_pairs': {
         'EURUSD': 'ED',

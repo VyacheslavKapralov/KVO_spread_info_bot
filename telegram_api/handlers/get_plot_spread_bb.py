@@ -4,7 +4,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_spread_type, menu_futures_tool, menu_spot_tool
+from telegram_api.essence.keyboards import menu_spread_type, menu_futures_ticker, menu_spot_ticker
 from settings import PARAMETERS
 from utils.data_frame_pandas import add_dataframe_spread_bb
 from utils.spread_chart import add_plot_spread
@@ -33,9 +33,9 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
         PARAMETERS['bollinger_deviation'],
         PARAMETERS['bollinger_period']
     )
-    name = data['tool_2']
-    if data.get('tool_3'):
-        name = data['tool_3']
+    name = data['tickers'][1]
+    if len(data['tickers']) == 3:
+        name = data['tickers'][2]
     plot = await add_plot_spread(df, name)
     await sending_signal_bb(callback, data, plot)
     await MainInfo.type_info.set()
@@ -43,22 +43,22 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
 
 @logger.catch()
 async def sending_signal_bb(callback: types.CallbackQuery, data, plot):
-    if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        keyboard = menu_futures_tool
+    if data['type_ticker'] == 'futures' or data['type_ticker'] == 'stocks_futures':
+        keyboard = menu_futures_ticker
     else:
-        keyboard = menu_spot_tool
-    if not data.get('tool_3'):
+        keyboard = menu_spot_ticker
+    if len(data['tickers']) == 2:
         await callback.message.answer_photo(photo=plot,
-                                            caption=BotAnswers.result_bb(data['tool_1'], data['tool_2']),
+                                            caption=BotAnswers.result_bb(data['tickers'][0], data['tickers'][1]),
                                             reply_markup=keyboard())
-    else:
+    elif len(data['tickers']) == 3:
         await callback.message.answer_photo(photo=plot,
-                                            caption=BotAnswers.result_bb(data['tool_1'], data['tool_2'],
-                                                                         data['tool_3']), reply_markup=keyboard())
+                                            caption=BotAnswers.result_bb(data['tickers'][0], data['tickers'][1],
+                                                                         data['tickers'][2]), reply_markup=keyboard())
 
 
 @logger.catch()
-def register_handlers_command_bollinger_bands(dp: Dispatcher):
+async def register_handlers_command_bollinger_bands(dp: Dispatcher):
     dp.register_callback_query_handler(bollinger_bands, lambda callback: callback.data == 'bollinger_bands',
                                        state=MainInfo.type_info)
     dp.register_callback_query_handler(set_spread_type_bb, lambda callback: callback.data in ['money', 'percent'],

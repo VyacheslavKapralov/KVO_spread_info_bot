@@ -4,7 +4,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_futures_tool, menu_spot_tool
+from telegram_api.essence.keyboards import menu_futures_ticker, menu_spot_ticker
 from utils.calculate_funding import calculate_funding
 from utils.decorators import check_int
 
@@ -27,32 +27,32 @@ async def set_position(message: types.Message, state: FSMContext):
 async def get_funding(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         await message.answer(BotAnswers.expectation_answer())
-        if data.get('tool_3'):
-            data['funding'] = await calculate_funding(data['tool_3'])
-        else:
-            data['funding'] = await calculate_funding(data['tool_2'])
+        if len(data['tickers']) == 2:
+            data['funding'] = await calculate_funding(data['tickers'][1])
+        elif len(data['tickers']) == 3:
+            data['funding'] = await calculate_funding(data['tickers'][2])
     await sending_signal_funding(message, data)
     await MainInfo.type_info.set()
 
 
 @logger.catch()
 async def sending_signal_funding(message: types.Message, data: dict):
-    if data['type_tool'] == 'futures' or data['type_tool'] == 'stocks_futures':
-        keyboard = menu_futures_tool
+    if data['type_ticker'] == 'futures' or data['type_ticker'] == 'stocks_futures':
+        keyboard = menu_futures_ticker
     else:
-        keyboard = menu_spot_tool
-    if not data.get('tool_3'):
+        keyboard = menu_spot_ticker
+    if len(data['tickers']) == 2:
         await message.answer(
-            BotAnswers().result_calculation_funding(data['funding'] * data['position'], data['tool_2']),
+            BotAnswers().result_calculation_funding(data['funding'] * data['position'], data['tickers'][1]),
             reply_markup=keyboard())
-    else:
+    elif len(data['tickers']) == 3:
         await message.answer(
-            BotAnswers().result_calculation_funding(data['funding'] * data['position'], data['tool_2'], data['tool_3']),
-            reply_markup=keyboard())
+            BotAnswers().result_calculation_funding(data['funding'] * data['position'], data['tickers'][1],
+                                                    data['tickers'][2]), reply_markup=keyboard())
 
 
 @logger.catch()
-def register_handlers_command_funding(dp: Dispatcher):
+async def register_handlers_command_funding(dp: Dispatcher):
     dp.register_callback_query_handler(funding, lambda callback: callback.data == 'funding',
                                        state=MainInfo.type_info)
     dp.register_message_handler(set_position, state=MainInfo.position)

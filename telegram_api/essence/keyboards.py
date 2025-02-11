@@ -37,6 +37,7 @@ def stocks_menu():
 @logger.catch()
 def stocks_futures_menu():
     return InlineKeyboardMarkup(row_width=3).add(
+        InlineKeyboardButton(text='MX---IMOEXF', callback_data='IMOEXF'),
         InlineKeyboardButton(text='GZ---GAZPF', callback_data='GAZPF'),
         InlineKeyboardButton(text='SR---SBERF', callback_data='SBERF_R'),
         InlineKeyboardButton(text='SP---SBERF', callback_data='SBERF_P'),
@@ -53,8 +54,9 @@ def spot_menu():
 
 
 @logger.catch()
-def menu_futures_tool():
-    return InlineKeyboardMarkup(row_width=3).add(
+def menu_futures_ticker():
+    return InlineKeyboardMarkup(row_width=4).add(
+        InlineKeyboardButton(text='Fair price', callback_data='fair_price'),
         InlineKeyboardButton(text='Spread', callback_data='spread'),
         InlineKeyboardButton(text='Funding', callback_data='funding'),
         InlineKeyboardButton(text='EMA', callback_data='ema'),
@@ -65,7 +67,7 @@ def menu_futures_tool():
     )
 
 @logger.catch()
-def menu_spot_tool():
+def menu_spot_ticker():
     return InlineKeyboardMarkup(row_width=3).add(
         InlineKeyboardButton(text='Spread', callback_data='spread'),
         InlineKeyboardButton(text='EMA', callback_data='ema'),

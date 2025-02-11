@@ -3,8 +3,8 @@ from loguru import logger
 
 
 @logger.catch()
-async def get_funding_moex(tool: str):
-    url = f"https://iss.moex.com/cs/engines/futures/markets/swaprates/securities/{tool}.json"
+async def get_funding_moex(ticker: str):
+    url = f"https://iss.moex.com/cs/engines/futures/markets/swaprates/securities/{ticker}.json"
     params = {
         'candles': 2,
         'interval': 1,
@@ -18,8 +18,8 @@ async def get_funding_moex(tool: str):
 
 
 @logger.catch()
-async def get_lot_volume(tool: str):
-    url = f"https://iss.moex.com/iss/engines/futures/markets/forts/securities/{tool}.json"
+async def get_lot_volume(ticker: str):
+    url = f"https://iss.moex.com/iss/engines/futures/markets/forts/securities/{ticker}.json"
     params = {
         'iss.meta': 'off',
         'iss.json': 'extended',
@@ -36,9 +36,9 @@ async def get_lot_volume(tool: str):
 
 
 @logger.catch()
-async def calculate_funding(tool: str) -> float:
-    funding_rate = await get_funding_moex(tool)
-    lot_volume = await get_lot_volume(tool)
+async def calculate_funding(ticker: str) -> float:
+    funding_rate = await get_funding_moex(ticker)
+    lot_volume = await get_lot_volume(ticker)
     return funding_rate * lot_volume
 
 

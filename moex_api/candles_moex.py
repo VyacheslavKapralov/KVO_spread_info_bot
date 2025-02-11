@@ -1,12 +1,10 @@
-from pprint import pprint
-
 import requests
 
 from datetime import datetime
 
 from loguru import logger
 
-from moex_api.last_price_moex import get_ticker_data
+from moex_api.get_data_moex import get_ticker_data
 
 
 @logger.catch()
@@ -67,4 +65,4 @@ def clean_dict(data: dict, keys_to_remove: list) -> dict:
 
 
 if __name__ == '__main__':
-    logger.info('Running last_price_moex.py from module utils')
+    logger.info('Running get_data_moex.py from module utils')

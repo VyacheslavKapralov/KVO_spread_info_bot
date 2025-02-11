@@ -18,21 +18,25 @@ class BotAnswers:
                 'Повторите попытку позже.')
 
     @staticmethod
-    def result_calculation_indicator(number: float, indicator_type: str, tool_1: str, tool_2: str, spread_type: str,
-                                     tool_3: str = None) -> str:
-        if tool_3:
+    def result_calculation_indicator(number: float, indicator_type: str, ticker_1: str, ticker_2: str, spread_type: str,
+                                     ticker_3: str = None) -> str:
+        if ticker_3:
             if spread_type == 'money':
-                return f"{indicator_type} спреда {tool_1} * {tool_2} - {tool_3}: {number} руб."
-            return f"{indicator_type} спреда {tool_1} * {tool_2} / {tool_3}: {number} %"
+                return f"{indicator_type} спреда {ticker_1} * {ticker_2} - {ticker_3}: {number} руб."
+            return f"{indicator_type} спреда {ticker_1} * {ticker_2} / {ticker_3}: {number} %"
         if spread_type == 'money':
-            return f"{indicator_type} спреда {tool_1} - {tool_2}: {number} руб."
-        return f"{indicator_type} спреда {tool_1} / {tool_2}: {number} %"
+            return f"{indicator_type} спреда {ticker_1} - {ticker_2}: {number} руб."
+        return f"{indicator_type} спреда {ticker_1} / {ticker_2}: {number} %"
 
     @staticmethod
-    def result_calculation_funding(number: float, tool_2: str, tool_3: str = None) -> str:
-        if tool_3:
-            tool_2 = tool_3
-        return f"Фандинг инструмента {tool_2}: {number} руб."
+    def result_calculation_funding(number: float, ticker_2: str, ticker_3: str = None) -> str:
+        if ticker_3:
+            return f"Фандинг инструмента {ticker_3}: {number} руб."
+        return f"Фандинг инструмента {ticker_2}: {number} руб."
+
+    @staticmethod
+    def result_fair_price_futures(number: float, ticker: str) -> str:
+        return f"Справедливая цена фьючерса {ticker}: {number}"
 
     @staticmethod
     def spread_type() -> str:
@@ -47,39 +51,39 @@ class BotAnswers:
         return 'Фандинг для инструмента'
 
     @staticmethod
-    def spread_moex(tool_1: str, tool_2: str, spread_type: str) -> str:
+    def spread_moex(ticker_1: str, ticker_2: str, spread_type: str) -> str:
         if spread_type == 'percent':
-            return f"Спред {tool_1}/{tool_2}%"
+            return f"Спред {ticker_1}/{ticker_2}%"
         elif spread_type == 'money':
-            return f"Спред {tool_1}-{tool_2} руб."
+            return f"Спред {ticker_1}-{ticker_2} руб."
 
     # @staticmethod
-    # def spread_bb_moex(tool_1: str, tool_2: str, spread_type: str) -> str:
+    # def spread_bb_moex(ticker_1: str, ticker_2: str, spread_type: str) -> str:
     #     if spread_type == 'percent':
-    #         return f"График спреда с линиями Боллинджера {tool_1}/{tool_2}%"
+    #         return f"График спреда с линиями Боллинджера {ticker_1}/{ticker_2}%"
     #     elif spread_type == 'money':
-    #         return f"График спреда с линиями Боллинджера {tool_1}-{tool_2} руб."
+    #         return f"График спреда с линиями Боллинджера {ticker_1}-{ticker_2} руб."
 
     # @staticmethod
-    # def spread_sma_moex(tool_1: str, tool_2: str, spread_type: str) -> str:
+    # def spread_sma_moex(ticker_1: str, ticker_2: str, spread_type: str) -> str:
     #     if spread_type == 'percent':
-    #         return f"Простая скользящая средняя спреда {tool_1}/{tool_2}%"
+    #         return f"Простая скользящая средняя спреда {ticker_1}/{ticker_2}%"
     #     elif spread_type == 'money':
-    #         return f"Простая скользящая средняя спреда {tool_1}-{tool_2} руб."
+    #         return f"Простая скользящая средняя спреда {ticker_1}-{ticker_2} руб."
 
     # @staticmethod
-    # def spread_ema_moex(tool_1: str, tool_2: str, spread_type: str) -> str:
+    # def spread_ema_moex(ticker_1: str, ticker_2: str, spread_type: str) -> str:
     #     if spread_type == 'percent':
-    #         return f"Экспоненциальная скользящая средняя спреда {tool_1}/{tool_2}%"
+    #         return f"Экспоненциальная скользящая средняя спреда {ticker_1}/{ticker_2}%"
     #     elif spread_type == 'money':
-    #         return f"Экспоненциальная скользящая средняя спреда {tool_1}-{tool_2} руб."
+    #         return f"Экспоненциальная скользящая средняя спреда {ticker_1}-{ticker_2} руб."
 
     # @staticmethod
-    # def spread_atr_moex(tool_1: str, tool_2: str, spread_type: str) -> str:
+    # def spread_atr_moex(ticker_1: str, ticker_2: str, spread_type: str) -> str:
     #     if spread_type == 'percent':
-    #         return f"Среднее отклонение спреда {tool_1}/{tool_2}%"
+    #         return f"Среднее отклонение спреда {ticker_1}/{ticker_2}%"
     #     elif spread_type == 'money':
-    #         return f"Среднее отклонение спреда {tool_1}-{tool_2} руб."
+    #         return f"Среднее отклонение спреда {ticker_1}-{ticker_2} руб."
 
     @staticmethod
     def what_needs_sent() -> str:
@@ -90,10 +94,10 @@ class BotAnswers:
         return 'Выберите пару для которой нужна информация'
 
     @staticmethod
-    def result_bb(tool_1: str, tool_2: str, tool_3: str = None) -> str:
-        if tool_3:
-            return f"График с полосами Боллинджера для {tool_1} * {tool_2} к {tool_3}"
-        return f"График с полосами Боллинджера для {tool_1} к {tool_2}"
+    def result_bb(ticker_1: str, ticker_2: str, ticker_3: str = None) -> str:
+        if ticker_3:
+            return f"График с полосами Боллинджера для {ticker_1} * {ticker_2} к {ticker_3}"
+        return f"График с полосами Боллинджера для {ticker_1} к {ticker_2}"
     #
     # @staticmethod
     # def strategy_answer() -> str:

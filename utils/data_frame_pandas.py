@@ -80,48 +80,48 @@ async def calculate_bollinger_bands_ema(data_frame: pd.DataFrame, deviation: int
 
 @logger.catch()
 async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
-                               coefficient_tool_1: int, coefficient_tool_2: int, spread_type: str) -> pd.DataFrame:
+                               coefficient_ticker_1: int, coefficient_ticker_2: int, spread_type: str) -> pd.DataFrame:
     merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
     data_frame_3 = pd.DataFrame({'Date': merged_df['Date']})
     if spread_type == 'money':
         data_frame_3['Open'] = round(
-            merged_df['Open_1'] * coefficient_tool_1 - merged_df['Open_2'] * coefficient_tool_2, 3)
+            merged_df['Open_1'] * coefficient_ticker_1 - merged_df['Open_2'] * coefficient_ticker_2, 3)
         data_frame_3['High'] = round(
-            merged_df['High_1'] * coefficient_tool_1 - merged_df['High_2'] * coefficient_tool_2, 3)
+            merged_df['High_1'] * coefficient_ticker_1 - merged_df['High_2'] * coefficient_ticker_2, 3)
         data_frame_3['Low'] = round(
-            merged_df['Low_1'] * coefficient_tool_1 - merged_df['Low_2'] * coefficient_tool_2, 3)
+            merged_df['Low_1'] * coefficient_ticker_1 - merged_df['Low_2'] * coefficient_ticker_2, 3)
         data_frame_3['Close'] = round(
-            merged_df['Close_1'] * coefficient_tool_1 - merged_df['Close_2'] * coefficient_tool_2, 3)
+            merged_df['Close_1'] * coefficient_ticker_1 - merged_df['Close_2'] * coefficient_ticker_2, 3)
     elif spread_type == 'percent':
         data_frame_3['Open'] = round(
-            ((merged_df['Open_1'] * coefficient_tool_1) / (merged_df['Open_2'] * coefficient_tool_2) - 1) * 100, 2)
+            ((merged_df['Open_1'] * coefficient_ticker_1) / (merged_df['Open_2'] * coefficient_ticker_2) - 1) * 100, 2)
         data_frame_3['High'] = round(
-            ((merged_df['High_1'] * coefficient_tool_1) / (merged_df['High_2'] * coefficient_tool_2) - 1) * 100, 2)
+            ((merged_df['High_1'] * coefficient_ticker_1) / (merged_df['High_2'] * coefficient_ticker_2) - 1) * 100, 2)
         data_frame_3['Low'] = round(
-            ((merged_df['Low_1'] * coefficient_tool_1) / (merged_df['Low_2'] * coefficient_tool_2) - 1) * 100, 2)
+            ((merged_df['Low_1'] * coefficient_ticker_1) / (merged_df['Low_2'] * coefficient_ticker_2) - 1) * 100, 2)
         data_frame_3['Close'] = round(
-            ((merged_df['Close_1'] * coefficient_tool_1) / (merged_df['Close_2'] * coefficient_tool_2) - 1) * 100, 2)
+            ((merged_df['Close_1'] * coefficient_ticker_1) / (merged_df['Close_2'] * coefficient_ticker_2) - 1) * 100, 2)
     return data_frame_3
 
 
 @logger.catch()
-async def multiplication_data_frame(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame, coefficient_tool_1: float,
-                                    coefficient_tool_2: float, coefficient_tool_3: float) -> pd.DataFrame:
+async def multiplication_data_frame(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame, coefficient_ticker_1: float,
+                                    coefficient_ticker_2: float, coefficient_ticker_3: float) -> pd.DataFrame:
     merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
     df = pd.DataFrame({'Date': merged_df['Date']})
     df['Open'] = round(
-        merged_df['Open_1'] * coefficient_tool_1 * merged_df['Open_2'] * coefficient_tool_2 / coefficient_tool_3, 3)
+        merged_df['Open_1'] * coefficient_ticker_1 * merged_df['Open_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
     df['High'] = round(
-        merged_df['High_1'] * coefficient_tool_1 * merged_df['High_2'] * coefficient_tool_2 / coefficient_tool_3, 3)
+        merged_df['High_1'] * coefficient_ticker_1 * merged_df['High_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
     df['Low'] = round(
-        merged_df['Low_1'] * coefficient_tool_1 * merged_df['Low_2'] * coefficient_tool_2 / coefficient_tool_3, 3)
+        merged_df['Low_1'] * coefficient_ticker_1 * merged_df['Low_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
     df['Close'] = round(
-        merged_df['Close_1'] * coefficient_tool_1 * merged_df['Close_2'] * coefficient_tool_2 / coefficient_tool_3, 3)
+        merged_df['Close_1'] * coefficient_ticker_1 * merged_df['Close_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
     return df
 
 
 @logger.catch()
-async def add_candles_tool(ticker: str, candle_interval: str) -> list:
+async def add_candles_ticker(ticker: str, candle_interval: str) -> list:
     figi = await searching_ticker_figi(ticker)
     return await get_candles(figi=figi, candle_interval=candle_interval)
 
@@ -139,21 +139,17 @@ async def add_dataframe_spread_bb(candle_interval: str, data: dict, deviation: i
 
 @logger.catch()
 async def create_dataframe_spread(candle_interval: str, data: dict) -> pd.DataFrame:
-    candles_1 = await add_candles_tool(data['tool_1'], candle_interval)
-    candles_2 = await add_candles_tool(data['tool_2'], candle_interval)
-    data_frame_1 = await add_dataframe_pandas(candles_1)
-    data_frame_2 = await add_dataframe_pandas(candles_2)
-    coefficient_tool_1 = data['coefficient_tool_1']
-    coefficient_tool_2 = data['coefficient_tool_2']
-    if data.get('tool_3'):
-        data_frame_1 = await multiplication_data_frame(data_frame_1, data_frame_2, coefficient_tool_1,
-                                                       coefficient_tool_2, data['coefficient_tool_3'])
-        candles_3 = await add_candles_tool(data['tool_3'], candle_interval)
-        data_frame_2 = await add_dataframe_pandas(candles_3)
-        coefficient_tool_1 = 1
-        coefficient_tool_2 = 1
-    return await get_dataframe_spread(data_frame_1, data_frame_2, coefficient_tool_1, coefficient_tool_2,
-                                      data['spread_type'])
+    data_frames = []
+    for ticker in data['tickers']:
+        candles = await add_candles_ticker(ticker, candle_interval)
+        data_frames.append(await add_dataframe_pandas(candles))
+    if len(data['tickers']) == 2:
+        return await get_dataframe_spread(data_frames[0], data_frames[1], data['coefficients'][0],
+                                          data['coefficients'][1], data['spread_type'])
+    if len(data['tickers']) == 3:
+        data_frame_1 = await multiplication_data_frame(data_frames[0], data_frames[1], data['coefficients'][0],
+                                          data['coefficients'][1], data['coefficients'][2])
+        return await get_dataframe_spread(data_frame_1, data_frames[2], 1, 1, data['spread_type'])
 
 
 if __name__ == '__main__':
