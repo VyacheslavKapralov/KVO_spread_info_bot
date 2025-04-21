@@ -4,7 +4,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_futures_ticker, menu_spot_ticker
+from telegram_api.essence.keyboards import menu_perpetual_futures
 from utils.calculate_funding import calculate_funding
 from utils.decorators import check_int
 
@@ -27,28 +27,20 @@ async def set_position(message: types.Message, state: FSMContext):
 async def get_funding(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         await message.answer(BotAnswers.expectation_answer())
-        if len(data['tickers']) == 2:
-            data['funding'] = await calculate_funding(data['tickers'][1])
-        elif len(data['tickers']) == 3:
-            data['funding'] = await calculate_funding(data['tickers'][2])
+        data['funding'] = []
+        for ticker in data['tickers']:
+            if ticker[-1] == 'F':
+                data['funding'].append([ticker, await calculate_funding(ticker)])
     await sending_signal_funding(message, data)
     await MainInfo.type_info.set()
 
 
 @logger.catch()
 async def sending_signal_funding(message: types.Message, data: dict):
-    if data['type_ticker'] == 'futures' or data['type_ticker'] == 'stocks_futures':
-        keyboard = menu_futures_ticker
-    else:
-        keyboard = menu_spot_ticker
-    if len(data['tickers']) == 2:
-        await message.answer(
-            BotAnswers().result_calculation_funding(data['funding'] * data['position'], data['tickers'][1]),
-            reply_markup=keyboard())
-    elif len(data['tickers']) == 3:
-        await message.answer(
-            BotAnswers().result_calculation_funding(data['funding'] * data['position'], data['tickers'][1],
-                                                    data['tickers'][2]), reply_markup=keyboard())
+    for elem in data['funding']:
+        result = elem[1] * data['position']
+        await message.answer(BotAnswers().result_calculation_funding(result, elem[0]),
+                             reply_markup=menu_perpetual_futures())
 
 
 @logger.catch()

@@ -4,7 +4,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_spread_type, menu_futures_ticker, menu_spot_ticker
+from telegram_api.essence.keyboards import menu_spread_type, menu_perpetual_futures, menu_quarterly_futures_and_stock
 from settings import PARAMETERS
 from utils.data_frame_pandas import calculate_ema, create_dataframe_spread
 
@@ -35,18 +35,13 @@ async def get_spread_ema(callback: types.CallbackQuery, state: FSMContext):
 
 @logger.catch()
 async def sending_signal_ema(callback: types.CallbackQuery, data: dict):
-    if data['type_ticker'] == 'futures' or data['type_ticker'] == 'stocks_futures':
-        keyboard = menu_futures_ticker
+    if data['perpetual']:
+        reply_markup = menu_perpetual_futures
     else:
-        keyboard = menu_spot_ticker
-    if len(data['tickers']) == 2:
-        await callback.message.answer(
-            BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tickers'][0],
-                                                      data['tickers'][1], data['spread_type']), reply_markup=keyboard())
-    elif len(data['tickers']) == 3:
-        await callback.message.answer(
-            BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tickers'][0], data['tickers'][1],
-                                                      data['spread_type'],  data['tickers'][2]), reply_markup=keyboard())
+        reply_markup = menu_quarterly_futures_and_stock
+    await callback.message.answer(
+        BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tickers'],
+                                                      data['spread_type']), reply_markup=reply_markup())
 
 
 @logger.catch()

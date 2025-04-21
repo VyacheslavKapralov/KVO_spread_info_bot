@@ -4,7 +4,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_futures_ticker
+from telegram_api.essence.keyboards import menu_perpetual_futures
 from utils.fair_price_futures import get_fair_price_futures
 
 
@@ -16,14 +16,14 @@ async def fair_price(callback: types.CallbackQuery, state: FSMContext):
             data[f"fair_price_{ticker}"] = await get_fair_price_futures(ticker)
             await callback.message.answer(
                 BotAnswers().result_fair_price_futures(data[f"fair_price_{ticker}"], ticker),
-                reply_markup=menu_futures_ticker())
+                reply_markup=menu_perpetual_futures())
         elif len(data['tickers']) == 3:
             for num in range(len(data['tickers']) - 1):
                 data[f"fair_price_{data['tickers'][num]}"] = await get_fair_price_futures(data['tickers'][num])
                 await callback.message.answer(
                     BotAnswers().result_fair_price_futures(data[f"fair_price_{data['tickers'][num]}"],
                                                            data['tickers'][num]),
-                    reply_markup=menu_futures_ticker())
+                    reply_markup=menu_perpetual_futures())
     await MainInfo.type_info.set()
 
 

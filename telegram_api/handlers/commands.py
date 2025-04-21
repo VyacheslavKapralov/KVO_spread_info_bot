@@ -5,16 +5,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import (
-    main_menu,
-    menu_futures_ticker,
-    stocks_menu,
-    futures_menu,
-    stocks_futures_menu,
-    spot_menu,
-    menu_spot_ticker
-)
-from settings import PARAMETERS
+from telegram_api.essence.keyboards import main_menu, menu_perpetual_futures, menu_quarterly_futures_and_stock
 from moex_api.search_current_ticker import get_ticker_future
 
 
@@ -43,41 +34,25 @@ async def command_start(message: types.Message):
 
 
 @logger.catch()
-async def command_ticker(callback: types.CallbackQuery):
-    await MainInfo.pare_ticker.set()
-    if callback.data == 'stocks':
-        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_menu())
-    if callback.data == 'spot_futures':
-        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=futures_menu())
-    if callback.data == 'stocks_futures':
-        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=stocks_futures_menu())
-    if callback.data == 'spot':
-        return await callback.message.answer(BotAnswers.pare_need_info(), reply_markup=spot_menu())
-
-
-@logger.catch()
-async def command_futures_ticker(callback: types.CallbackQuery, state: FSMContext):
+async def command_get_tickers_at_settings(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
     async with state.proxy() as data:
-        data['type_ticker'] = 'futures'
         data['tickers'] = []
-        data['coefficients'] = []
-        for elem in PARAMETERS['futures_pairs'][callback.data]['pair']:
+        data['coefficients'] = callback.data.split(';')[1].strip('()').replace(' ', '').split(',')
+        tickers = callback.data.split(';')[0]
+        data['perpetual'] = False
+        for elem in tickers.split('_'):
+            if elem[-1] == 'F':
+                data['perpetual'] = True
             ticker = await get_ticker_future(elem)
+            if not ticker:
+                raise
             data['tickers'].append(ticker)
-        for elem in PARAMETERS['futures_pairs'][callback.data]['coefficients']:
-            data['coefficients'].append(elem)
-        return await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_futures_ticker())
-
-
-@logger.catch()
-async def command_stocks_ticker(callback: types.CallbackQuery, state: FSMContext):
-    await MainInfo.type_info.set()
-    async with state.proxy() as data:
-        data['type_ticker'] = 'stocks'
-        data['tickers'] = [callback.data, PARAMETERS['stocks_pairs'].get(callback.data)]
-        data['coefficients'] = [1, 1]
-    await callback.message.answer(BotAnswers.what_needs_sent(), reply_markup=menu_spot_ticker())
+        if data['perpetual']:
+            await callback.message.answer(BotAnswers.what_needs_sent(tickers), reply_markup=menu_perpetual_futures())
+            return
+        await callback.message.answer(BotAnswers.what_needs_sent(tickers),
+                                      reply_markup=menu_quarterly_futures_and_stock())
 
 
 @logger.catch()
@@ -88,12 +63,7 @@ async def register_handlers_commands(dp: Dispatcher):
     dp.register_message_handler(command_start, commands=['start', 'старт', 'info', 'инфо', 'help', 'помощь'], state='*')
     dp.register_message_handler(command_start, Text(equals=['start', 'старт', 'info', 'инфо', 'help', 'помощь'],
                                                     ignore_case=True), state='*')
-    dp.register_callback_query_handler(command_ticker, lambda callback: callback.data in [
-        'stocks', 'spot_futures', 'stocks_futures', 'spot'], state=MainInfo.type_ticker)
-    dp.register_callback_query_handler(command_futures_ticker, lambda callback: callback.data in [
-        'CNYRUBF', 'EURRUBF', 'GAZPF', 'GLDRUBF', 'IMOEXF', 'SBERF_R', 'SBERF_P', 'USDRUBF'], state=MainInfo.pare_ticker)
-    dp.register_callback_query_handler(command_stocks_ticker, lambda callback: callback.data in [
-        'TATN', 'MTLR', 'RTKM', 'SBER'], state=MainInfo.pare_ticker)
+    dp.register_callback_query_handler(command_get_tickers_at_settings, state=MainInfo.type_ticker)
 
 
 if __name__ == '__main__':

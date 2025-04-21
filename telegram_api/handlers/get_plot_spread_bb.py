@@ -4,7 +4,7 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_spread_type, menu_futures_ticker, menu_spot_ticker
+from telegram_api.essence.keyboards import menu_spread_type, menu_perpetual_futures, menu_quarterly_futures_and_stock
 from settings import PARAMETERS
 from utils.data_frame_pandas import add_dataframe_spread_bb
 from utils.spread_chart import add_plot_spread
@@ -28,33 +28,22 @@ async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.expectation_answer())
     df = await add_dataframe_spread_bb(
-        PARAMETERS['time_frame_minutes'],
-        data,
-        PARAMETERS['bollinger_deviation'],
-        PARAMETERS['bollinger_period']
+        PARAMETERS['time_frame_minutes'], data, PARAMETERS['bollinger_deviation'], PARAMETERS['bollinger_period']
     )
-    name = data['tickers'][1]
-    if len(data['tickers']) == 3:
-        name = data['tickers'][2]
-    plot = await add_plot_spread(df, name)
+    plot = await add_plot_spread(df, ' '.join(data['tickers']))
     await sending_signal_bb(callback, data, plot)
     await MainInfo.type_info.set()
 
 
 @logger.catch()
 async def sending_signal_bb(callback: types.CallbackQuery, data, plot):
-    if data['type_ticker'] == 'futures' or data['type_ticker'] == 'stocks_futures':
-        keyboard = menu_futures_ticker
+    if data['perpetual']:
+        reply_markup = menu_perpetual_futures
     else:
-        keyboard = menu_spot_ticker
-    if len(data['tickers']) == 2:
-        await callback.message.answer_photo(photo=plot,
-                                            caption=BotAnswers.result_bb(data['tickers'][0], data['tickers'][1]),
-                                            reply_markup=keyboard())
-    elif len(data['tickers']) == 3:
-        await callback.message.answer_photo(photo=plot,
-                                            caption=BotAnswers.result_bb(data['tickers'][0], data['tickers'][1],
-                                                                         data['tickers'][2]), reply_markup=keyboard())
+        reply_markup = menu_quarterly_futures_and_stock
+    await callback.message.answer_photo(photo=plot,
+                                        caption=BotAnswers.result_bb(data['tickers'][0], data['tickers'][1]),
+                                        reply_markup=reply_markup())
 
 
 @logger.catch()

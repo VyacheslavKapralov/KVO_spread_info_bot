@@ -9,12 +9,60 @@ from tinkoff_investments.figi_for_ticker import searching_ticker_figi
 
 
 @logger.catch()
+async def create_dataframe_spread(candle_interval: str, data: dict) -> pd.DataFrame:
+    data_frames = []
+    for num in range(len(data['tickers'])):
+        candles = await add_candles_ticker(data['tickers'][num], candle_interval)
+        data_frame = await add_dataframe_pandas(candles)
+        data_frames.append(await get_dataframe_with_coefficient(data_frame, float(data['coefficients'][num])))
+    result_data_frame = data_frames[0]
+    for elem in data_frames[1:]:
+        result_data_frame = await get_dataframe_spread(result_data_frame, elem, data['spread_type'])
+    result_data_frame = await get_dataframe_with_coefficient(result_data_frame, 100, 1)
+    return result_data_frame
+
+
+@logger.catch()
+async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
+                               spread_type: str) -> pd.DataFrame:
+    merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
+    data_frame_3 = pd.DataFrame({'Date': merged_df['Date']})
+    if spread_type == 'money':
+        data_frame_3['Open'] = round(merged_df['Open_1'] - merged_df['Open_2'], 3)
+        data_frame_3['High'] = round(merged_df['High_1'] - merged_df['High_2'], 3)
+        data_frame_3['Low'] = round(merged_df['Low_1'] - merged_df['Low_2'], 3)
+        data_frame_3['Close'] = round(merged_df['Close_1'] - merged_df['Close_2'], 3)
+    elif spread_type == 'percent':
+        data_frame_3['Open'] = round(merged_df['Open_1'] / merged_df['Open_2'], 4)
+        data_frame_3['High'] = round(merged_df['High_1'] / merged_df['High_2'], 4)
+        data_frame_3['Low'] = round(merged_df['Low_1'] / merged_df['Low_2'], 4)
+        data_frame_3['Close'] = round(merged_df['Close_1'] / merged_df['Close_2'], 4)
+    return data_frame_3
+
+
+@logger.catch()
+async def add_candles_ticker(ticker: str, candle_interval: str) -> list:
+    figi = await searching_ticker_figi(ticker)
+    return await get_candles(figi=figi, candle_interval=candle_interval)
+
+
+@logger.catch()
 async def add_dataframe_pandas(data: list) -> pd.DataFrame:
     data_frame = pd.DataFrame(data, columns=['Date', 'Open', 'High', 'Low', 'Close', 'Volume'])
     data_frame['Date'] = pd.to_datetime(data_frame['Date'], format='%Y-%m-%d %H:%M:%S')
     data_frame['Date'] = data_frame['Date'] + pd.Timedelta(hours=3)
     numeric_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
     data_frame[numeric_columns] = data_frame[numeric_columns].apply(pd.to_numeric, errors='coerce')
+    return data_frame
+
+
+@logger.catch()
+async def get_dataframe_with_coefficient(data_frame: pd.DataFrame, coefficient_1: float,
+                                         coefficient_2: int = 0) -> pd.DataFrame:
+    data_frame['Open'] = (data_frame['Open'] - coefficient_2) * coefficient_1
+    data_frame['High'] = (data_frame['High'] - coefficient_2) * coefficient_1
+    data_frame['Low'] = (data_frame['Low'] - coefficient_2) * coefficient_1
+    data_frame['Close'] = (data_frame['Close'] - coefficient_2) * coefficient_1
     return data_frame
 
 
@@ -79,77 +127,14 @@ async def calculate_bollinger_bands_ema(data_frame: pd.DataFrame, deviation: int
 
 
 @logger.catch()
-async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
-                               coefficient_ticker_1: int, coefficient_ticker_2: int, spread_type: str) -> pd.DataFrame:
-    merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
-    data_frame_3 = pd.DataFrame({'Date': merged_df['Date']})
-    if spread_type == 'money':
-        data_frame_3['Open'] = round(
-            merged_df['Open_1'] * coefficient_ticker_1 - merged_df['Open_2'] * coefficient_ticker_2, 3)
-        data_frame_3['High'] = round(
-            merged_df['High_1'] * coefficient_ticker_1 - merged_df['High_2'] * coefficient_ticker_2, 3)
-        data_frame_3['Low'] = round(
-            merged_df['Low_1'] * coefficient_ticker_1 - merged_df['Low_2'] * coefficient_ticker_2, 3)
-        data_frame_3['Close'] = round(
-            merged_df['Close_1'] * coefficient_ticker_1 - merged_df['Close_2'] * coefficient_ticker_2, 3)
-    elif spread_type == 'percent':
-        data_frame_3['Open'] = round(
-            ((merged_df['Open_1'] * coefficient_ticker_1) / (merged_df['Open_2'] * coefficient_ticker_2) - 1) * 100, 2)
-        data_frame_3['High'] = round(
-            ((merged_df['High_1'] * coefficient_ticker_1) / (merged_df['High_2'] * coefficient_ticker_2) - 1) * 100, 2)
-        data_frame_3['Low'] = round(
-            ((merged_df['Low_1'] * coefficient_ticker_1) / (merged_df['Low_2'] * coefficient_ticker_2) - 1) * 100, 2)
-        data_frame_3['Close'] = round(
-            ((merged_df['Close_1'] * coefficient_ticker_1) / (merged_df['Close_2'] * coefficient_ticker_2) - 1) * 100, 2)
-    return data_frame_3
-
-
-@logger.catch()
-async def multiplication_data_frame(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame, coefficient_ticker_1: float,
-                                    coefficient_ticker_2: float, coefficient_ticker_3: float) -> pd.DataFrame:
-    merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
-    df = pd.DataFrame({'Date': merged_df['Date']})
-    df['Open'] = round(
-        merged_df['Open_1'] * coefficient_ticker_1 * merged_df['Open_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
-    df['High'] = round(
-        merged_df['High_1'] * coefficient_ticker_1 * merged_df['High_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
-    df['Low'] = round(
-        merged_df['Low_1'] * coefficient_ticker_1 * merged_df['Low_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
-    df['Close'] = round(
-        merged_df['Close_1'] * coefficient_ticker_1 * merged_df['Close_2'] * coefficient_ticker_2 / coefficient_ticker_3, 3)
-    return df
-
-
-@logger.catch()
-async def add_candles_ticker(ticker: str, candle_interval: str) -> list:
-    figi = await searching_ticker_figi(ticker)
-    return await get_candles(figi=figi, candle_interval=candle_interval)
-
-
-@logger.catch()
 async def add_dataframe_spread_bb(candle_interval: str, data: dict, deviation: int, period: int) -> pd.DataFrame:
     data_frame = await create_dataframe_spread(candle_interval, data)
     data_frame = await calculate_bollinger_bands_ta(data_frame, deviation, period)
     data_frame.dropna(inplace=True)
-    start_time = data_frame['Date'].iloc[-1] - pd.Timedelta(days=5)
+    start_time = data_frame['Date'].iloc[-1] - pd.Timedelta(days=3)
     data_frame = data_frame.loc[data_frame['Date'] >= start_time]
     data_frame = data_frame.set_index('Date')
     return data_frame
-
-
-@logger.catch()
-async def create_dataframe_spread(candle_interval: str, data: dict) -> pd.DataFrame:
-    data_frames = []
-    for ticker in data['tickers']:
-        candles = await add_candles_ticker(ticker, candle_interval)
-        data_frames.append(await add_dataframe_pandas(candles))
-    if len(data['tickers']) == 2:
-        return await get_dataframe_spread(data_frames[0], data_frames[1], data['coefficients'][0],
-                                          data['coefficients'][1], data['spread_type'])
-    if len(data['tickers']) == 3:
-        data_frame_1 = await multiplication_data_frame(data_frames[0], data_frames[1], data['coefficients'][0],
-                                          data['coefficients'][1], data['coefficients'][2])
-        return await get_dataframe_spread(data_frame_1, data_frames[2], 1, 1, data['spread_type'])
 
 
 if __name__ == '__main__':
