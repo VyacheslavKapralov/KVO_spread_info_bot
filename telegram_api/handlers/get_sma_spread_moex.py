@@ -10,15 +10,24 @@ from utils.data_frame_pandas import calculate_sma, create_dataframe_spread
 
 
 @logger.catch()
-async def simple_ma(callback: types.CallbackQuery):
+async def simple_ma(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
     await MainInfo.spread_type_sma.set()
+    async with state.proxy() as data:
+        await callback.message.answer(f"SMA спреда для {' '.join(data['tickers'])}")
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
 @logger.catch()
 async def set_spread_type_sma(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
     async with state.proxy() as data:
         data['spread_type'] = callback.data
+    if callback.data == 'money':
+        text = 'Значение спреда в валюте'
+    else:
+        text = 'Значение спреда в процентах'
+    await callback.message.answer(text)
     await get_spread_sma(callback, state)
 
 
@@ -26,7 +35,8 @@ async def set_spread_type_sma(callback: types.CallbackQuery, state: FSMContext):
 async def get_spread_sma(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.expectation_answer())
-        df = await create_dataframe_spread(PARAMETERS['time_frame_minutes'], data)
+        df = await create_dataframe_spread(PARAMETERS['time_frame_minutes'], data['coefficients'], data['tickers'],
+                                           data['spread_type'])
         df_sma = await calculate_sma(df, PARAMETERS['sma_period'])
         data['sma'] = round(df_sma['sma'].iloc[-1], 3)
     await sending_signal_sma(callback, data)

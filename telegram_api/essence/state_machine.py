@@ -10,7 +10,20 @@ class MainInfo(StatesGroup):
     spread_type_sma = State()
     spread_type_atr = State()
     spread_type_bb = State()
-    position = State()
+    volume_position = State()
+    direction_position = State()
+
+
+class Alert(StatesGroup):
+    tickers = State()
+    type_alert = State()
+    type_spread = State()
+    min_line = State()
+    max_line = State()
+
+
+class AdminPanel(StatesGroup):
+    what_edit = State()
 
 
 if __name__ == '__main__':

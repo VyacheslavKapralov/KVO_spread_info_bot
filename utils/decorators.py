@@ -7,6 +7,8 @@ from telegram_api.essence.answers_bot import BotAnswers
 def check_float(func):
     async def wrapper(message, state):
         try:
+            if ',' in message.text:
+                message.text = message.text.replace(',', '.')
             _ = float(message.text)
             await func(message, state)
         except ValueError:

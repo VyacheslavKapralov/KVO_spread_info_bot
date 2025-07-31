@@ -6,20 +6,20 @@ from moex_api.get_data_moex import get_last_price_moex
 
 
 @logger.catch()
-async def calculate_spread(data: dict) -> float or None:
-    last_prices = []
-    for num in range(len(data['tickers'])):
-        last_price = await get_price_for_figi(data['tickers'][num])
+async def calculate_spread(coefficients_list: list, spread_type: str, tickers_list: list) -> float or None:
+    last_prices_list = []
+    for num, ticker in enumerate(tickers_list):
+        last_price = await get_price_for_figi(ticker)
         if not last_price:
             return
-        last_prices.append(last_price * float(data['coefficients'][num]))
-    spread = last_prices[0]
-    if data['spread_type'] == 'percent':
-        for elem in last_prices[1:]:
+        last_prices_list.append(last_price * float(coefficients_list[num]))
+    spread = last_prices_list[0]
+    if spread_type == 'percent':
+        for elem in last_prices_list[1:]:
             spread /= elem
         return round((spread - 1) * 100, 2)
-    elif data['spread_type'] == 'money':
-        for elem in last_prices[1:]:
+    else:
+        for elem in last_prices_list[1:]:
             spread -= elem
         return round(spread, 3)
 

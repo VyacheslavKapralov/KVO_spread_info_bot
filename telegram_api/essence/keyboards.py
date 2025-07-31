@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from loguru import logger
 
 from settings import PARAMETERS
@@ -6,6 +6,19 @@ from settings import PARAMETERS
 
 @logger.catch()
 def main_menu():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Получить информацию по спреду', callback_data='spread_info'),
+        InlineKeyboardButton(text='Установить оповещения по спреду', callback_data='set_alerts'),
+    )
+
+
+@logger.catch()
+def menu_chancel():
+    return ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('/chancel'))
+
+
+@logger.catch()
+def menu_instruments():
     keyboard = InlineKeyboardMarkup()
     for type_tool, value in PARAMETERS['pairs'].items():
         keyboard.add(InlineKeyboardButton(text=type_tool, callback_data="None"))
@@ -53,6 +66,32 @@ def menu_spread_type():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Валюта', callback_data='money'),
         InlineKeyboardButton(text='Проценты', callback_data='percent'),
+    )
+
+
+@logger.catch()
+def menu_direction_position():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Продажа', callback_data='short'),
+        InlineKeyboardButton(text='Покупка', callback_data='long'),
+    )
+
+@logger.catch()
+def menu_type_alert():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Пересечение горизонтальной линии', callback_data='line_alert'),
+        InlineKeyboardButton(text='Пересечение линий Боллинджера', callback_data='bollinger_bands_alert'),
+    )
+
+
+@logger.catch()
+def admin_menu():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Доступ к боту', callback_data='access'),
+        InlineKeyboardButton(text='Параметры бота', callback_data='params'),
+        InlineKeyboardButton(text='Прислать список пользователей', callback_data='get_users'),
+        InlineKeyboardButton(text='Прислать историю сигналов', callback_data='get_signals'),
+        # InlineKeyboardButton(text='Параметры бота', callback_data='params'),
     )
 
 

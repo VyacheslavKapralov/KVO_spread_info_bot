@@ -8,7 +8,7 @@ from settings import PARAMETERS
 
 
 @logger.catch()
-async def get_ticker_future(name: str) -> None or str:
+async def get_ticker(name: str) -> None or str:
     if len(name) != 2:
         return name
     current_date = datetime.now().date()
@@ -33,7 +33,7 @@ async def get_expiration_date(ticker: str):
             response.raise_for_status()
             return response.json()['description']['data'][5][2]
         except IndexError:
-            logger.info(f"Неудачный запрос даты экспирации инструмента: {ticker}")
+            logger.warning(f"Неудачный запрос даты экспирации инструмента: {ticker}")
             return
         except ConnectionResetError as error:
             logger.error(f"Error - {error}: {error.with_traceback()}")

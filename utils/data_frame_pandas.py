@@ -1,5 +1,3 @@
-# from datetime import timedelta
-
 import pandas as pd
 import pandas_ta as ta
 from loguru import logger
@@ -9,16 +7,18 @@ from tinkoff_investments.figi_for_ticker import searching_ticker_figi
 
 
 @logger.catch()
-async def create_dataframe_spread(candle_interval: str, data: dict) -> pd.DataFrame:
+async def create_dataframe_spread(candle_interval: str, coefficients_list: list, tickers_list: list,
+                                  spread_type: str) -> pd.DataFrame:
     data_frames = []
-    for num in range(len(data['tickers'])):
-        candles = await add_candles_ticker(data['tickers'][num], candle_interval)
+    for num, ticker in enumerate(tickers_list):
+        candles = await add_candles_ticker(ticker, candle_interval)
         data_frame = await add_dataframe_pandas(candles)
-        data_frames.append(await get_dataframe_with_coefficient(data_frame, float(data['coefficients'][num])))
+        data_frames.append(await get_dataframe_with_coefficient(data_frame, float(coefficients_list[num])))
     result_data_frame = data_frames[0]
-    for elem in data_frames[1:]:
-        result_data_frame = await get_dataframe_spread(result_data_frame, elem, data['spread_type'])
-    result_data_frame = await get_dataframe_with_coefficient(result_data_frame, 100, 1)
+    for df in data_frames[1:]:
+        result_data_frame = await get_dataframe_spread(result_data_frame, df, spread_type)
+    if spread_type == 'percent':
+        result_data_frame = await get_dataframe_with_coefficient(result_data_frame, 100, 1)
     return result_data_frame
 
 
@@ -66,31 +66,6 @@ async def get_dataframe_with_coefficient(data_frame: pd.DataFrame, coefficient_1
     return data_frame
 
 
-# @logger.catch()
-# async def filling_time_gaps(data_frame: pd.DataFrame, period: str = '5m') -> pd.DataFrame:
-#     period_mapping = {
-#         'm': 'minutes',
-#         'h': 'hours',
-#         'd': 'days',
-#         'w': 'weeks',
-#         'M': 'months'
-#     }
-#     period_value = int(period[:-1])
-#     period_unit = period_mapping[period[-1]]
-#     time_delta = timedelta(**{period_unit: period_value})
-#     all_dates = pd.date_range(start=data_frame['Date'].min(), end=data_frame['Date'].max(), freq=time_delta)
-#     complete_data_frame = pd.DataFrame(all_dates, columns=['Date'])
-#     data_frame = complete_data_frame.merge(data_frame, on='Date', how='left')
-#     data_frame = data_frame[~((data_frame['Date'].dt.time > pd.to_datetime('23:45').time()) |
-#                               (data_frame['Date'].dt.time < pd.to_datetime('07:00').time()))]
-#     data_frame.reset_index(drop=True, inplace=True)
-#     for i in range(1, len(data_frame)):
-#         if pd.isna(data_frame.at[i, 'Open']):
-#             for col in ['Open', 'High', 'Low', 'Close']:
-#                 data_frame.at[i, col] = data_frame.at[i - 1, 'Close']
-#     return data_frame
-
-
 @logger.catch()
 async def calculate_sma(data: pd.DataFrame, period: int) -> pd.DataFrame:
     data['sma'] = data['Close'].rolling(window=period).mean()
@@ -127,8 +102,9 @@ async def calculate_bollinger_bands_ema(data_frame: pd.DataFrame, deviation: int
 
 
 @logger.catch()
-async def add_dataframe_spread_bb(candle_interval: str, data: dict, deviation: int, period: int) -> pd.DataFrame:
-    data_frame = await create_dataframe_spread(candle_interval, data)
+async def add_dataframe_spread_bb(candle_interval: str, coefficients_list: list, deviation: int, period: int,
+                                  tickers_list: list, spread_type: str) -> pd.DataFrame:
+    data_frame = await create_dataframe_spread(candle_interval, coefficients_list, tickers_list, spread_type)
     data_frame = await calculate_bollinger_bands_ta(data_frame, deviation, period)
     data_frame.dropna(inplace=True)
     start_time = data_frame['Date'].iloc[-1] - pd.Timedelta(days=3)

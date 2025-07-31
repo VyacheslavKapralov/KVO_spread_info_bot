@@ -10,15 +10,24 @@ from utils.data_frame_pandas import calculate_atr, create_dataframe_spread
 
 
 @logger.catch()
-async def average_true_range(callback: types.CallbackQuery):
+async def average_true_range(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
     await MainInfo.spread_type_atr.set()
+    async with state.proxy() as data:
+        await callback.message.answer(f"ATR спреда для {' '.join(data['tickers'])}")
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
 @logger.catch()
 async def set_spread_type_atr(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
     async with state.proxy() as data:
         data['spread_type'] = callback.data
+    if callback.data == 'money':
+        text = 'Значение спреда в валюте'
+    else:
+        text = 'Значение спреда в процентах'
+    await callback.message.answer(text)
     await get_spread_atr(callback, state)
 
 
@@ -26,7 +35,8 @@ async def set_spread_type_atr(callback: types.CallbackQuery, state: FSMContext):
 async def get_spread_atr(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.expectation_answer())
-        df = await create_dataframe_spread(PARAMETERS['time_frame_minutes'], data)
+        df = await create_dataframe_spread(PARAMETERS['time_frame_minutes'], data['coefficients'], data['tickers'],
+                                           data['spread_type'])
         df_atr = await calculate_atr(df, PARAMETERS['atr_period'])
         data['atr'] = round(df_atr['atr'].iloc[-1], 3)
     await sending_signal_atr(callback, data)

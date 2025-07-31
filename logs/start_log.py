@@ -6,7 +6,7 @@ from datetime import datetime
 def log_telegram_bot():
     """Настройки логирования."""
 
-    now_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    now_datetime = datetime.now().strftime('%Y-%m-%d')
     logger.add(
         f'logs/files_logs/{now_datetime}.log',
         rotation='1 day',

@@ -18,11 +18,12 @@ async def fair_price(callback: types.CallbackQuery, state: FSMContext):
                 BotAnswers().result_fair_price_futures(data[f"fair_price_{ticker}"], ticker),
                 reply_markup=menu_perpetual_futures())
         elif len(data['tickers']) == 3:
-            for num in range(len(data['tickers']) - 1):
-                data[f"fair_price_{data['tickers'][num]}"] = await get_fair_price_futures(data['tickers'][num])
+            for num, ticker in enumerate(data['tickers']):
+                if num == 2:
+                    break
+                data[f"fair_price_{ticker}"] = await get_fair_price_futures(ticker)
                 await callback.message.answer(
-                    BotAnswers().result_fair_price_futures(data[f"fair_price_{data['tickers'][num]}"],
-                                                           data['tickers'][num]),
+                    BotAnswers().result_fair_price_futures(data[f"fair_price_{ticker}"], ticker),
                     reply_markup=menu_perpetual_futures())
     await MainInfo.type_info.set()
 
