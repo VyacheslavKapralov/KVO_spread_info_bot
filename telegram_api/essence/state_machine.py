@@ -24,6 +24,10 @@ class Alert(StatesGroup):
 
 class AdminPanel(StatesGroup):
     what_edit = State()
+    access_bot = State()
+    add_user = State()
+    set_user_nik = State()
+    del_user = State()
 
 
 if __name__ == '__main__':

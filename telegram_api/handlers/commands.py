@@ -145,10 +145,10 @@ async def command_history(message: types.Message):
         return await message.answer(BotAnswers.not_info_database())
     if history_line:
         for elem in history_line:
-            await message.answer(BotAnswers.info_signal_database(elem))
+            await message.answer(BotAnswers.info_signal_database(elem[0], elem[4], elem[1], elem[2]))
     if history_bollinger:
         for elem in history_bollinger:
-            await message.answer(BotAnswers.info_signal_database(elem))
+            await message.answer(BotAnswers.info_signal_database(elem[0], elem[4], elem[1], elem[2]))
 
 
 @logger.catch()

@@ -91,7 +91,21 @@ def admin_menu():
         InlineKeyboardButton(text='Параметры бота', callback_data='params'),
         InlineKeyboardButton(text='Прислать список пользователей', callback_data='get_users'),
         InlineKeyboardButton(text='Прислать историю сигналов', callback_data='get_signals'),
-        # InlineKeyboardButton(text='Параметры бота', callback_data='params'),
+        InlineKeyboardButton(text='Закрыть панель администратора', callback_data='stop_admin'),
+    )
+
+
+def access_bot_menu():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Добавить пользователя в допущенные', callback_data='add_user'),
+        InlineKeyboardButton(text='Удалить пользователя из допущенных', callback_data='del_user')
+    )
+
+
+def confirm_menu():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Да', callback_data='yes'),
+        InlineKeyboardButton(text='Нет', callback_data='no')
     )
 
 

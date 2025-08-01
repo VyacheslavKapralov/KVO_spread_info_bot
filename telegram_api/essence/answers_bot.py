@@ -132,16 +132,44 @@ class BotAnswers:
         return 'Недопущенные пользователи:'
 
     @staticmethod
-    def user_database(elem: list) -> str:
-        return f"User name: {elem[1]}. User ID: {elem[2]}. Date: {elem[0]}"
+    def user_database(date: str, user_name: str, user_id: int) -> str:
+        return f"Date: {date}\nUser name: {user_name}\nUser ID: {user_id}"
 
     @staticmethod
     def not_info_database() -> str:
         return 'В базе данных нет информации о сигналах.'
 
     @staticmethod
-    def info_signal_database(elem: list) -> str:
-        return f"Date: {elem[0]},\nUser name: {elem[1]}\nUser ID: {elem[2]}\nInfo: {elem[4]}\n"
+    def info_signal_database(date: str, info: str, user_name: str, user_id: int) -> str:
+        return f"Date: {date}\nUser name: {user_name}\nUser ID: {user_id}\nInfo: {info}\n"
+
+    @staticmethod
+    def access_bot():
+        return 'Выберите, что нужно сделать с доступом к боту:'
+
+    @staticmethod
+    def get_user_id():
+        return 'Напишите id пользователя:'
+
+    @staticmethod
+    def get_user_nik():
+        return 'Напишите никнейм пользователя:'
+
+    @staticmethod
+    def success_add_user_db(user_id: int, user_nik: str):
+        return f"Пользователь {user_nik} с номером id: {user_id} успешно добавлен."
+
+    @staticmethod
+    def choice_action_access():
+        return 'Выберите дальнейшее действие:'
+
+    @staticmethod
+    def confirm_deletion(user_id: str):
+        return f"Подтвердите удаление пользователя id: {user_id}"
+
+    @staticmethod
+    def stop_admin_panel():
+        return 'Панель администратора закрыта.'
 
 
 if __name__ == '__main__':
