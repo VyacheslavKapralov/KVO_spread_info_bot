@@ -7,19 +7,10 @@ from loguru import logger
 
 from database.database_bot import BotDatabase
 from moex_api.search_current_ticker import get_ticker
-from settings import PARAMETERS
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.keyboards import (main_menu, menu_perpetual_futures, menu_quarterly_futures_and_stock,
                                             menu_instruments)
 from telegram_api.essence.state_machine import MainInfo, Alert
-
-
-async def command_chancel(message: types.Message, state: FSMContext):
-    PARAMETERS['non_stop'] = False
-    current_state = await state.get_state()
-    if current_state:
-        await state.finish()
-        await message.answer(BotAnswers.command_chancel_answer(), reply_markup=main_menu())
 
 
 async def command_start(message: types.Message):
@@ -86,9 +77,9 @@ async def command_get_info_spread(callback: types.CallbackQuery, state: FSMConte
         await state.finish()
     await MainInfo.type_ticker.set()
     if callback.data == 'set_alerts':
-        text = 'Установка оповещения по спреду'
+        text = BotAnswers.set_alert()
     else:
-        text = 'Получение информации по спреду'
+        text = BotAnswers.get_info_spread()
     await callback.message.answer(text)
     await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=menu_instruments())
 
@@ -112,9 +103,9 @@ async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext
         await state.finish()
     await Alert.tickers.set()
     if callback.data == 'set_alerts':
-        text = 'Установка оповещения по спреду'
+        text = BotAnswers.set_alert()
     else:
-        text = 'Получение информации по спреду'
+        text = BotAnswers.get_info_spread()
     await callback.message.answer(text)
     await callback.message.answer(BotAnswers.command_alerts(), reply_markup=menu_instruments())
 
@@ -144,9 +135,6 @@ async def command_history(message: types.Message):
 
 
 async def register_handlers_commands(dp: Dispatcher):
-    dp.register_message_handler(command_chancel, commands=['сброс', 'прервать', 'chancel'], state='*')
-    dp.register_message_handler(command_chancel, Text(equals=['сброс', 'прервать', 'chancel'], ignore_case=True),
-                                state='*')
     dp.register_callback_query_handler(command_get_info_spread, lambda callback: callback.data == 'spread_info',
                                        state='*')
     dp.register_callback_query_handler(command_enable_alerts, lambda callback: callback.data == 'set_alerts', state='*')

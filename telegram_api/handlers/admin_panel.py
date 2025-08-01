@@ -2,13 +2,12 @@ from datetime import datetime
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-
 from loguru import logger
 
 from database.database_bot import BotDatabase
 from telegram_api.essence.answers_bot import BotAnswers
-from telegram_api.essence.state_machine import AdminPanel
 from telegram_api.essence.keyboards import main_menu, admin_menu, access_bot_menu, confirm_menu
+from telegram_api.essence.state_machine import AdminPanel
 from utils.decorators import check_int
 
 
@@ -144,29 +143,28 @@ async def deleting_user(callback: types.CallbackQuery, state: FSMContext):
     await AdminPanel.what_edit.set()
 
 
-
+async def get_parameters_bot(callback: types.CallbackQuery):
+    pass
 
 
 async def register_handlers_admin_panel_commands(dp: Dispatcher):
     dp.register_message_handler(admin_panel, commands=['admin'], state='*')
     dp.register_callback_query_handler(get_all_ids_db, lambda callback: callback.data == 'get_users',
                                        state=AdminPanel.what_edit)
-    dp.register_callback_query_handler(get_history_signals_admin,
-                                       lambda callback: callback.data == 'get_signals',
+    dp.register_callback_query_handler(get_history_signals_admin, lambda callback: callback.data == 'get_signals',
                                        state=AdminPanel.what_edit)
-    dp.register_callback_query_handler(access_bot,
-                                       lambda callback: callback.data == 'access',
+    dp.register_callback_query_handler(access_bot, lambda callback: callback.data == 'access',
                                        state=AdminPanel.what_edit)
-    dp.register_callback_query_handler(access_bot_get_incoming_ids,
-                                       lambda callback: callback.data == 'add_user',
+    dp.register_callback_query_handler(access_bot_get_incoming_ids, lambda callback: callback.data == 'add_user',
                                        state=AdminPanel.access_bot)
-    dp.register_callback_query_handler(access_bot_get_allowed_ids,
-                                       lambda callback: callback.data == 'del_user',
+    dp.register_callback_query_handler(access_bot_get_allowed_ids, lambda callback: callback.data == 'del_user',
                                        state=AdminPanel.access_bot)
     dp.register_message_handler(set_user_id, state=(AdminPanel.add_user, AdminPanel.del_user))
     dp.register_message_handler(adding_user, state=AdminPanel.set_user_nik)
     dp.register_callback_query_handler(deleting_user, state=AdminPanel.del_user)
     dp.register_callback_query_handler(stop_admin_panel, state=AdminPanel.what_edit)
+    dp.register_callback_query_handler(get_parameters_bot, lambda callback: callback.data == 'params',
+                                       state=AdminPanel.what_edit)
 
 
 if __name__ == '__main__':

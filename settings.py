@@ -27,7 +27,6 @@ PARAMETERS = {
     'sma_period': 200,
     'ema_period': 200,
     'atr_period': 200,
-    'non_stop': True,
     'signals': 3,
     'pairs': {
         'Валютные фьючерсы вечные к квартальным': (

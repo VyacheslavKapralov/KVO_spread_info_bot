@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 
-import pandas as pd
+# import pandas as pd
 from aiogram import types
 from loguru import logger
 
@@ -16,7 +16,7 @@ from utils.spread_chart import add_plot_spread
 from utils.waiting_time import get_waiting_time
 
 
-async def signal_line(data: dict, message: types.Message) -> float or None:
+async def signal_line(data: dict, message: types.Message, monitor_id: str, spread_monitor) -> None:
     tickers = data['tickers']
     coefficients = data['coefficients']
     spread_type = data['spread_type']
@@ -24,44 +24,50 @@ async def signal_line(data: dict, message: types.Message) -> float or None:
     max_spread = float(data['max_line'])
     min_spread = float(data['min_line'])
     signals = PARAMETERS['signals']
-    non_stop = PARAMETERS['non_stop']
     count = 3
-    while non_stop:
+    in_alert_zone = False
+    while True:
+        if not await spread_monitor.is_monitor_active(message.from_user.id, monitor_id):
+            logger.info(f"Мониторинг {monitor_id} остановлен")
+            return
         if count == 0:
             await message.answer(BotAnswers.no_exchange_data())
             await asyncio.sleep(60)
             count = 3
-        if signals == 0:
-            await asyncio.sleep(600)
-            signals = 3
         try:
             spread = await calculate_spread(coefficients, spread_type, tickers)
-            if max_spread <= spread or spread <= min_spread:
+            if not in_alert_zone and (max_spread <= spread or spread <= min_spread):
+                in_alert_zone = True
                 signals -= 1
                 await send_signal(message, tickers, type_alert, spread, spread_type, min_line=min_spread,
                                   max_line=max_spread)
+            if in_alert_zone and min_spread < spread < max_spread:
+                in_alert_zone = False
+            if in_alert_zone:
                 await asyncio.sleep(15)
+            else:
+                await asyncio.sleep(1.5)
         except (FigiRetrievalError, DataRetrievalError) as error:
             logger.error(f"Error: {error}. {error.message}")
             count -= 1
         except asyncio.exceptions.TimeoutError as error:
             logger.error(f"Error: {error}")
-        finally:
-            await asyncio.sleep(1.5)
 
 
-async def signal_bb(data: dict, message: types.Message) -> (pd.DataFrame, float) or None:
+async def signal_bb(data: dict, message: types.Message, monitor_id: str, spread_monitor) -> None:
     time_frame = PARAMETERS['time_frame_minutes']
     bollinger_deviation = PARAMETERS['bollinger_deviation']
     bollinger_period = PARAMETERS['bollinger_period']
-    none_stop = PARAMETERS['non_stop']
     tickers = data['tickers']
     coefficients = data['coefficients']
     spread_type = data['spread_type']
     type_alert = data['type_alert']
     count = 3
     first_condition = False
-    while none_stop:
+    while True:
+        if not await spread_monitor.is_monitor_active(message.from_user.id, monitor_id):
+            logger.info(f"Мониторинг {monitor_id} остановлен")
+            return
         if count == 0:
             await message.answer(BotAnswers.no_exchange_data())
             await asyncio.sleep(60)
@@ -97,9 +103,8 @@ async def signal_bb(data: dict, message: types.Message) -> (pd.DataFrame, float)
             count -= 1
         except asyncio.exceptions.TimeoutError as error:
             logger.error(f"Error: {error}")
-        finally:
-            wait_time = await get_waiting_time(time_frame)
-            await asyncio.sleep(wait_time)
+        wait_time = await get_waiting_time(time_frame)
+        await asyncio.sleep(wait_time)
 
 
 async def send_signal(message: types.Message, tickers: list, type_alert: str, spread: float, spread_type: str,

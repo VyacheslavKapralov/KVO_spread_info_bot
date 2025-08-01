@@ -30,5 +30,9 @@ class AdminPanel(StatesGroup):
     del_user = State()
 
 
+class MonitoringControl(StatesGroup):
+    del_monitoring = State()
+
+
 if __name__ == '__main__':
     logger.info('Running state_machine.py from module telegram_api/essence')

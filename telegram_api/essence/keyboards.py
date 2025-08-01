@@ -76,6 +76,13 @@ def menu_type_alert():
     )
 
 
+def menu_monitor_control():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Остановить все', callback_data='stop_all'),
+        InlineKeyboardButton(text='Остановить один', callback_data='list_monitors'),
+    )
+
+
 def admin_menu():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Доступ к боту', callback_data='access'),
