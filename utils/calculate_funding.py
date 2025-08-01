@@ -2,7 +2,6 @@ import requests
 from loguru import logger
 
 
-@logger.catch()
 async def calculate_funding(ticker: str) -> float:
     funding_rate = await get_funding_moex(ticker)
     lot_volume = await get_lot_volume(ticker)

@@ -24,6 +24,7 @@ async def get_ticker(name: str) -> None or str:
             return ticker
 
 
+@logger.catch()
 async def get_expiration_date(ticker: str):
     count = 0
     url = f"https://iss.moex.com/iss/securities/{ticker}.json"

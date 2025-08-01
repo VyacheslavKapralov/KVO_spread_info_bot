@@ -10,7 +10,6 @@ from telegram_api.handlers.spread_rules import signal_line, signal_bb
 from utils.decorators import check_float
 
 
-@logger.catch()
 async def set_tickers_alert(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await Alert.type_alert.set()
@@ -27,7 +26,6 @@ async def set_tickers_alert(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(BotAnswers.what_alert_set(' '.join(data['tickers'])), reply_markup=menu_type_alert())
 
 
-@logger.catch()
 async def set_type_alert(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await Alert.type_spread.set()
@@ -41,7 +39,6 @@ async def set_type_alert(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
-@logger.catch()
 async def set_type_spread_alert(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
@@ -59,7 +56,6 @@ async def set_type_spread_alert(callback: types.CallbackQuery, state: FSMContext
         await signal_bb(data, callback.message)
 
 
-@logger.catch()
 @check_float
 async def set_minimum_line_alert(message: types.Message, state: FSMContext):
     await Alert.max_line.set()
@@ -68,7 +64,6 @@ async def set_minimum_line_alert(message: types.Message, state: FSMContext):
     await message.answer(BotAnswers.grid_max_price_answer())
 
 
-@logger.catch()
 @check_float
 async def set_maximum_line_alert(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -77,7 +72,6 @@ async def set_maximum_line_alert(message: types.Message, state: FSMContext):
     await signal_line(data, message)
 
 
-@logger.catch()
 async def register_handlers_alerts(dp: Dispatcher):
     dp.register_callback_query_handler(set_tickers_alert, state=Alert.tickers)
     dp.register_callback_query_handler(set_type_alert, state=Alert.type_alert)

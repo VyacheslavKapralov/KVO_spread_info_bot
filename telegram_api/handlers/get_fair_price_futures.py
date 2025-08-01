@@ -8,7 +8,6 @@ from telegram_api.essence.keyboards import menu_perpetual_futures
 from utils.fair_price_futures import get_fair_price_futures
 
 
-@logger.catch()
 async def fair_price(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         if len(data['tickers']) == 2:
@@ -28,7 +27,6 @@ async def fair_price(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
 
 
-@logger.catch()
 async def register_handlers_command_fair_price(dp: Dispatcher):
     dp.register_callback_query_handler(fair_price, lambda callback: callback.data == 'fair_price',
                                        state=MainInfo.type_info)

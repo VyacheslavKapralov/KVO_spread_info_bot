@@ -6,7 +6,6 @@ from tinkoff_investments.candles_tinkoff import get_candles
 from tinkoff_investments.figi_for_ticker import searching_ticker_figi
 
 
-@logger.catch()
 async def create_dataframe_spread(candle_interval: str, coefficients_list: list, tickers_list: list,
                                   spread_type: str) -> pd.DataFrame:
     data_frames = []
@@ -22,7 +21,6 @@ async def create_dataframe_spread(candle_interval: str, coefficients_list: list,
     return result_data_frame
 
 
-@logger.catch()
 async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.DataFrame,
                                spread_type: str) -> pd.DataFrame:
     merged_df = pd.merge(data_frame_1, data_frame_2, on='Date', suffixes=('_1', '_2'))
@@ -40,13 +38,11 @@ async def get_dataframe_spread(data_frame_1: pd.DataFrame, data_frame_2: pd.Data
     return data_frame_3
 
 
-@logger.catch()
 async def add_candles_ticker(ticker: str, candle_interval: str) -> list:
     figi = await searching_ticker_figi(ticker)
     return await get_candles(figi=figi, candle_interval=candle_interval)
 
 
-@logger.catch()
 async def add_dataframe_pandas(data: list) -> pd.DataFrame:
     data_frame = pd.DataFrame(data, columns=['Date', 'Open', 'High', 'Low', 'Close', 'Volume'])
     data_frame['Date'] = pd.to_datetime(data_frame['Date'], format='%Y-%m-%d %H:%M:%S')
@@ -56,7 +52,6 @@ async def add_dataframe_pandas(data: list) -> pd.DataFrame:
     return data_frame
 
 
-@logger.catch()
 async def get_dataframe_with_coefficient(data_frame: pd.DataFrame, coefficient_1: float,
                                          coefficient_2: int = 0) -> pd.DataFrame:
     data_frame['Open'] = (data_frame['Open'] - coefficient_2) * coefficient_1
@@ -66,32 +61,27 @@ async def get_dataframe_with_coefficient(data_frame: pd.DataFrame, coefficient_1
     return data_frame
 
 
-@logger.catch()
 async def calculate_sma(data: pd.DataFrame, period: int) -> pd.DataFrame:
     data['sma'] = data['Close'].rolling(window=period).mean()
     return data
 
 
-@logger.catch()
 async def calculate_ema(data: pd.DataFrame, period: int) -> pd.DataFrame:
     data['ema'] = data['Close'].ewm(span=period, adjust=False).mean()
     return data
 
 
-@logger.catch()
 async def calculate_atr(data: pd.DataFrame, period: int) -> pd.DataFrame:
     data['atr'] = ta.atr(high=data['High'], low=data['Low'], close=data['Close'], length=period)
     return data
 
 
-@logger.catch()
 async def calculate_bollinger_bands_ta(data_frame: pd.DataFrame, deviation: int, period: int) -> pd.DataFrame:
     data_frame_bb = ta.bbands(close=data_frame['Close'], length=period, std=deviation)
     data_frame = pd.concat([data_frame, data_frame_bb], axis=1)
     return data_frame
 
 
-@logger.catch()
 async def calculate_bollinger_bands_ema(data_frame: pd.DataFrame, deviation: int, period: int) -> pd.DataFrame:
     ema = data_frame['Close'].ewm(span=period, adjust=False).mean()
     std = data_frame['Close'].rolling(window=period).std()
@@ -101,7 +91,6 @@ async def calculate_bollinger_bands_ema(data_frame: pd.DataFrame, deviation: int
     return data_frame
 
 
-@logger.catch()
 async def add_dataframe_spread_bb(candle_interval: str, coefficients_list: list, deviation: int, period: int,
                                   tickers_list: list, spread_type: str) -> pd.DataFrame:
     data_frame = await create_dataframe_spread(candle_interval, coefficients_list, tickers_list, spread_type)

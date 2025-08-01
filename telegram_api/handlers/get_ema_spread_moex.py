@@ -9,7 +9,6 @@ from settings import PARAMETERS
 from utils.data_frame_pandas import calculate_ema, create_dataframe_spread
 
 
-@logger.catch()
 async def exponential_ma(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await MainInfo.spread_type_ema.set()
@@ -18,7 +17,6 @@ async def exponential_ma(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
-@logger.catch()
 async def set_spread_type_ema(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
@@ -31,7 +29,6 @@ async def set_spread_type_ema(callback: types.CallbackQuery, state: FSMContext):
     await get_spread_ema(callback, state)
 
 
-@logger.catch()
 async def get_spread_ema(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.expectation_answer())
@@ -43,7 +40,6 @@ async def get_spread_ema(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
 
 
-@logger.catch()
 async def sending_signal_ema(callback: types.CallbackQuery, data: dict):
     if data['perpetual']:
         reply_markup = menu_perpetual_futures
@@ -54,7 +50,6 @@ async def sending_signal_ema(callback: types.CallbackQuery, data: dict):
                                                       data['spread_type']), reply_markup=reply_markup())
 
 
-@logger.catch()
 async def register_handlers_command_ema(dp: Dispatcher):
     dp.register_callback_query_handler(exponential_ma, lambda callback: callback.data == 'ema',
                                        state=MainInfo.type_info)

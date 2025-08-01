@@ -20,7 +20,6 @@ class BotDatabase:
             for table_name in tables:
                 await self.create_database(table_name)
 
-    @logger.catch()
     async def create_database(self, table_name: str) -> None:
         connect = await connect_database()
         cursor = connect.cursor()

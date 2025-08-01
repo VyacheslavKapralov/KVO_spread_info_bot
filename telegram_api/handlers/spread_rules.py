@@ -16,7 +16,6 @@ from utils.spread_chart import add_plot_spread
 from utils.waiting_time import get_waiting_time
 
 
-@logger.catch()
 async def signal_line(data: dict, message: types.Message) -> float or None:
     tickers = data['tickers']
     coefficients = data['coefficients']
@@ -51,7 +50,6 @@ async def signal_line(data: dict, message: types.Message) -> float or None:
             await asyncio.sleep(1.5)
 
 
-@logger.catch()
 async def signal_bb(data: dict, message: types.Message) -> (pd.DataFrame, float) or None:
     time_frame = PARAMETERS['time_frame_minutes']
     bollinger_deviation = PARAMETERS['bollinger_deviation']
@@ -104,7 +102,6 @@ async def signal_bb(data: dict, message: types.Message) -> (pd.DataFrame, float)
             await asyncio.sleep(wait_time)
 
 
-@logger.catch()
 async def send_signal(message: types.Message, tickers: list, type_alert: str, spread: float, spread_type: str,
                       data_frame=None, min_line=0.0, max_line=0.0, plot=None):
     info = "Спред: "

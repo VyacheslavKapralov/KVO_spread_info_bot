@@ -26,7 +26,6 @@ async def get_last_price(figi: str) -> str or None:
                 continue
 
 
-@logger.catch()
 async def format_nano(nano: int) -> str:
     number_str = str(nano)
     while len(number_str) < 9:

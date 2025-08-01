@@ -8,7 +8,6 @@ from telegram_api.essence.keyboards import menu_spread_type, menu_perpetual_futu
 from utils.calculate_spread import calculate_spread
 
 
-@logger.catch()
 async def get_spread_moex(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await MainInfo.spread_type.set()
@@ -17,7 +16,6 @@ async def get_spread_moex(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
-@logger.catch()
 async def set_spread_type(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
@@ -30,7 +28,6 @@ async def set_spread_type(callback: types.CallbackQuery, state: FSMContext):
     await get_spread(callback, state)
 
 
-@logger.catch()
 async def get_spread(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.expectation_answer())
@@ -39,7 +36,6 @@ async def get_spread(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
 
 
-@logger.catch()
 async def sending_signal_spread(callback: types.CallbackQuery, data):
     if data['perpetual']:
         reply_markup = menu_perpetual_futures
@@ -50,7 +46,6 @@ async def sending_signal_spread(callback: types.CallbackQuery, data):
                                                       data['spread_type']), reply_markup=reply_markup())
 
 
-@logger.catch()
 async def register_handlers_command_spread(dp: Dispatcher):
     dp.register_callback_query_handler(get_spread_moex, lambda callback: callback.data == 'spread',
                                        state=MainInfo.type_info)

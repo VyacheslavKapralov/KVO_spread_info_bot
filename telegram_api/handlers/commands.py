@@ -14,7 +14,6 @@ from telegram_api.essence.keyboards import (main_menu, menu_perpetual_futures, m
 from telegram_api.essence.state_machine import MainInfo, Alert
 
 
-@logger.catch()
 async def command_chancel(message: types.Message, state: FSMContext):
     PARAMETERS['non_stop'] = False
     current_state = await state.get_state()
@@ -23,7 +22,6 @@ async def command_chancel(message: types.Message, state: FSMContext):
         await message.answer(BotAnswers.command_chancel_answer(), reply_markup=main_menu())
 
 
-@logger.catch()
 async def command_start(message: types.Message):
     user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
     if user_db is None or message.from_user.username not in user_db:
@@ -39,17 +37,14 @@ async def command_start(message: types.Message):
     await message.answer(BotAnswers().start_message(message.from_user.first_name), reply_markup=main_menu())
 
 
-@logger.catch()
 async def command_main_menu(message: types.Message):
     await message.answer(BotAnswers().main_menu(), reply_markup=main_menu())
 
 
-@logger.catch()
 async def command_main_menu_callback(callback: types.CallbackQuery):
     await callback.message.answer(BotAnswers().main_menu(), reply_markup=main_menu())
 
 
-@logger.catch()
 async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await MainInfo.type_info.set()
@@ -72,7 +67,6 @@ async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMConte
                                       reply_markup=menu_quarterly_futures_and_stock())
 
 
-@logger.catch()
 async def command_get_info_spread(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
@@ -99,7 +93,6 @@ async def command_get_info_spread(callback: types.CallbackQuery, state: FSMConte
     await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=menu_instruments())
 
 
-@logger.catch()
 async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
@@ -126,7 +119,6 @@ async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext
     await callback.message.answer(BotAnswers.command_alerts(), reply_markup=menu_instruments())
 
 
-@logger.catch()
 async def command_history(message: types.Message):
     user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
     if user_db is None or message.from_user.username not in user_db:
@@ -151,7 +143,6 @@ async def command_history(message: types.Message):
             await message.answer(BotAnswers.info_signal_database(elem[0], elem[4], elem[1], elem[2]))
 
 
-@logger.catch()
 async def register_handlers_commands(dp: Dispatcher):
     dp.register_message_handler(command_chancel, commands=['сброс', 'прервать', 'chancel'], state='*')
     dp.register_message_handler(command_chancel, Text(equals=['сброс', 'прервать', 'chancel'], ignore_case=True),

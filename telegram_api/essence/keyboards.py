@@ -4,7 +4,6 @@ from loguru import logger
 from settings import PARAMETERS
 
 
-@logger.catch()
 def main_menu():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Получить информацию по спреду', callback_data='spread_info'),
@@ -12,12 +11,10 @@ def main_menu():
     )
 
 
-@logger.catch()
 def menu_chancel():
     return ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('/chancel'))
 
 
-@logger.catch()
 def menu_instruments():
     keyboard = InlineKeyboardMarkup()
     for type_tool, value in PARAMETERS['pairs'].items():
@@ -36,7 +33,6 @@ def menu_instruments():
     return keyboard
 
 
-@logger.catch()
 def menu_perpetual_futures():
     return InlineKeyboardMarkup(row_width=4).add(
         InlineKeyboardButton(text='Spread', callback_data='spread'),
@@ -49,7 +45,6 @@ def menu_perpetual_futures():
     )
 
 
-@logger.catch()
 def menu_quarterly_futures_and_stock():
     return InlineKeyboardMarkup(row_width=4).add(
         InlineKeyboardButton(text='Spread', callback_data='spread'),
@@ -61,7 +56,6 @@ def menu_quarterly_futures_and_stock():
     )
 
 
-@logger.catch()
 def menu_spread_type():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Валюта', callback_data='money'),
@@ -69,14 +63,12 @@ def menu_spread_type():
     )
 
 
-@logger.catch()
 def menu_direction_position():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Продажа', callback_data='short'),
         InlineKeyboardButton(text='Покупка', callback_data='long'),
     )
 
-@logger.catch()
 def menu_type_alert():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Пересечение горизонтальной линии', callback_data='line_alert'),
@@ -84,7 +76,6 @@ def menu_type_alert():
     )
 
 
-@logger.catch()
 def admin_menu():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Доступ к боту', callback_data='access'),

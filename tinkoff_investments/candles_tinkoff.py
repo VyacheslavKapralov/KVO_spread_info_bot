@@ -44,7 +44,6 @@ async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -
             continue
 
 
-@logger.catch()
 async def get_candle_interval(candle_interval: str) -> CandleInterval:
     intervals = {
         '1m': CandleInterval.CANDLE_INTERVAL_1_MIN,

@@ -55,6 +55,7 @@ async def get_ticker_data(ticker: str) -> dict or None:
         count += 1
 
 
+@logger.catch()
 async def get_fixing(ticker: str) -> float or None:
     date_finish = datetime.now()
     date_start = date_finish - timedelta(days=3)
@@ -78,6 +79,7 @@ async def get_fixing(ticker: str) -> float or None:
             )
 
 
+@logger.catch()
 async def get_key_rate_soup() -> float:
     url = 'https://www.cbr.ru/hd_base/keyrate/'
     try:

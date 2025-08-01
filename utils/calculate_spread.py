@@ -5,7 +5,6 @@ from tinkoff_investments.last_price_tinkoff import get_last_price
 from moex_api.get_data_moex import get_last_price_moex
 
 
-@logger.catch()
 async def calculate_spread(coefficients_list: list, spread_type: str, tickers_list: list) -> float or None:
     last_prices_list = []
     for num, ticker in enumerate(tickers_list):
@@ -24,7 +23,6 @@ async def calculate_spread(coefficients_list: list, spread_type: str, tickers_li
         return round(spread, 3)
 
 
-@logger.catch()
 async def get_price_for_figi(ticker: str) -> float or None:
     ticker = await searching_ticker_figi(ticker)
     last_price = await get_last_price(ticker)

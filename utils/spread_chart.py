@@ -10,7 +10,6 @@ import io
 from loguru import logger
 
 
-@logger.catch()
 async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
     ap_lower = mpf.make_addplot(data_frame["BBL"], panel=0, color='g', title='Lower Band', secondary_y=False)
     ap_middle = mpf.make_addplot(data_frame["BBM"], panel=0, color='y', title='Middle Band', secondary_y=False)

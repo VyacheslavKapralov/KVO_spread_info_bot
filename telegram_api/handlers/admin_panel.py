@@ -12,7 +12,6 @@ from telegram_api.essence.keyboards import main_menu, admin_menu, access_bot_men
 from utils.decorators import check_int
 
 
-@logger.catch()
 async def admin_panel(message: types.Message):
     logger.info("Получена команда на администрирование бота.")
     admins = await BotDatabase().get_admin()
@@ -32,7 +31,6 @@ async def stop_admin_panel(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(BotAnswers.stop_admin_panel())
 
 
-@logger.catch()
 async def get_history_signals_admin(callback: types.CallbackQuery):
     await callback.message.delete()
     user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
@@ -52,7 +50,6 @@ async def get_history_signals_admin(callback: types.CallbackQuery):
     return None
 
 
-@logger.catch()
 async def get_all_ids_db(callback: types.CallbackQuery):
     await callback.message.delete()
     allowed_users = await BotDatabase().get_user('user_name', 'allowed_ids')
@@ -76,14 +73,12 @@ async def get_all_ids_db(callback: types.CallbackQuery):
         await callback.message.answer(BotAnswers.not_users_database())
 
 
-@logger.catch()
 async def access_bot(callback: types.CallbackQuery):
     await callback.message.delete()
     await AdminPanel.access_bot.set()
     await callback.message.answer(BotAnswers.access_bot(), reply_markup=access_bot_menu())
 
 
-@logger.catch()
 async def access_bot_get_incoming_ids(callback: types.CallbackQuery):
     await callback.message.delete()
     await AdminPanel.add_user.set()
@@ -149,7 +144,9 @@ async def deleting_user(callback: types.CallbackQuery, state: FSMContext):
     await AdminPanel.what_edit.set()
 
 
-@logger.catch()
+
+
+
 async def register_handlers_admin_panel_commands(dp: Dispatcher):
     dp.register_message_handler(admin_panel, commands=['admin'], state='*')
     dp.register_callback_query_handler(get_all_ids_db, lambda callback: callback.data == 'get_users',

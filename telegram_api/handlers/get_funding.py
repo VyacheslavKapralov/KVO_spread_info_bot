@@ -10,7 +10,6 @@ from utils.calculate_spread import get_price_for_figi
 from utils.decorators import check_int
 
 
-@logger.catch()
 async def get_funding(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await MainInfo.volume_position.set()
@@ -19,7 +18,6 @@ async def get_funding(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(BotAnswers.position())
 
 
-@logger.catch()
 @check_int
 async def set_position(message: types.Message, state: FSMContext):
     await message.delete()
@@ -30,7 +28,6 @@ async def set_position(message: types.Message, state: FSMContext):
     await message.answer(BotAnswers.direction_position(), reply_markup=menu_direction_position())
 
 
-@logger.catch()
 async def set_direction_position(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
@@ -39,7 +36,6 @@ async def set_direction_position(callback: types.CallbackQuery, state: FSMContex
     await get_funding_result(callback.message, state)
 
 
-@logger.catch()
 async def get_funding_result(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         await message.answer(BotAnswers.expectation_answer())
@@ -53,7 +49,6 @@ async def get_funding_result(message: types.Message, state: FSMContext):
     await MainInfo.type_info.set()
 
 
-@logger.catch()
 async def sending_signal_funding(message: types.Message, data: dict):
     volume_position = data['position']
     funding_first_ticker = data['funding'][0][1]
@@ -76,7 +71,6 @@ async def sending_signal_funding(message: types.Message, data: dict):
                          reply_markup=menu_perpetual_futures())
 
 
-@logger.catch()
 async def register_handlers_command_funding(dp: Dispatcher):
     dp.register_callback_query_handler(get_funding, lambda callback: callback.data == 'funding',
                                        state=MainInfo.type_info)

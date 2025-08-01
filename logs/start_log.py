@@ -2,7 +2,6 @@ from loguru import logger
 from datetime import datetime
 
 
-@logger.catch()
 def log_telegram_bot():
     """Настройки логирования."""
 
