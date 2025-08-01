@@ -22,9 +22,9 @@ async def set_spread_type_ema(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data['spread_type'] = callback.data
     if callback.data == 'money':
-        text = 'Значение спреда в валюте'
+        text = BotAnswers.money_spread()
     else:
-        text = 'Значение спреда в процентах'
+        text = BotAnswers.percent_spread()
     await callback.message.answer(text)
     await get_spread_ema(callback, state)
 

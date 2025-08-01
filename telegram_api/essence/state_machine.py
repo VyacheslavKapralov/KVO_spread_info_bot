@@ -28,6 +28,13 @@ class AdminPanel(StatesGroup):
     add_user = State()
     set_user_nik = State()
     del_user = State()
+    view_settings = State()
+    edit_settings_select = State()
+    edit_settings_value = State()
+
+
+class MonitoringControl(StatesGroup):
+    del_monitoring = State()
 
 
 if __name__ == '__main__':

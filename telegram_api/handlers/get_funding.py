@@ -14,17 +14,16 @@ async def get_funding(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await MainInfo.volume_position.set()
     async with state.proxy() as data:
-        await callback.message.answer(f"Фандинг спреда для {' '.join(data['tickers'])}")
+        await callback.message.answer(BotAnswers.funding(data['tickers']))
     await callback.message.answer(BotAnswers.position())
 
 
 @check_int
 async def set_position(message: types.Message, state: FSMContext):
-    await message.delete()
     await MainInfo.direction_position.set()
     async with state.proxy() as data:
         data['position'] = int(message.text)
-    await message.answer(f"Количество лотов в первой ноге: {message.text}")
+    await message.answer(BotAnswers.count_lots(message.text))
     await message.answer(BotAnswers.direction_position(), reply_markup=menu_direction_position())
 
 
@@ -32,7 +31,7 @@ async def set_direction_position(callback: types.CallbackQuery, state: FSMContex
     await callback.message.delete()
     async with state.proxy() as data:
         data['direction_position'] = callback.data
-    await callback.message.answer(f"Позиция '{callback.data}' спреда для {' '.join(data['tickers'])}")
+    await callback.message.answer(BotAnswers.set_direction_position(callback.data, data['tickers']))
     await get_funding_result(callback.message, state)
 
 

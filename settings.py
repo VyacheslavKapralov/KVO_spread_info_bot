@@ -22,12 +22,11 @@ PARAMETERS = {
         'Z': '12'
     },
     'time_frame_minutes': '15m',
-    'bollinger_period': 200,
+    'bollinger_period': 100,
     'bollinger_deviation': 2.0,
     'sma_period': 200,
     'ema_period': 200,
     'atr_period': 200,
-    'non_stop': True,
     'signals': 3,
     'pairs': {
         'Валютные фьючерсы вечные к квартальным': (
