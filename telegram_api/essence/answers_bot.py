@@ -46,20 +46,52 @@ class BotAnswers:
         return 'Выберите в каком виде отображать спред:'
 
     @staticmethod
+    def count_lots(count: str):
+        return f"Количество лотов в первой ноге: {count}"
+
+    @staticmethod
     def position() -> str:
         return 'Напишите какой размер позиции в лотах:'
+
+    @staticmethod
+    def set_direction_position(direction: str, tickers: list):
+        return f"Позиция '{direction}' спреда для {' '.join(tickers)}"
 
     @staticmethod
     def direction_position():
         return 'Выберите в каком направлении взят спред:'
 
     @staticmethod
-    def funding() -> str:
-        return 'Фандинг для инструмента'
+    def funding(tickers: list) -> str:
+        return f"Фандинг спреда для {' '.join(tickers)}"
 
     @staticmethod
     def what_needs_sent(text) -> str:
         return f'Выберите какую информацию нужно прислать для {text}:'
+
+    @staticmethod
+    def set_alert():
+        return 'Установка оповещения по спреду'
+
+    @staticmethod
+    def get_info_spread():
+        return 'Получение информации по спреду'
+
+    @staticmethod
+    def line_alert():
+        return 'Пересечение горизонтальной линии'
+
+    @staticmethod
+    def bb_alert():
+        return 'Пересечение линий Боллинджера'
+
+    @staticmethod
+    def money_spread():
+        return 'Значение спреда в валюте'
+
+    @staticmethod
+    def percent_spread():
+        return 'Значение спреда в процентах'
 
     @staticmethod
     def what_alert_set(text) -> str:
@@ -93,7 +125,7 @@ class BotAnswers:
 
     @staticmethod
     def command_chancel_answer() -> str:
-        return 'Остановка бота'
+        return 'Остановка отслеживания оповещений'
 
     @staticmethod
     def command_back_main_menu() -> str:
@@ -149,7 +181,7 @@ class BotAnswers:
 
     @staticmethod
     def get_user_id():
-        return 'Напишите id пользователя:'
+        return 'Напишите ID пользователя:'
 
     @staticmethod
     def get_user_nik():
@@ -157,7 +189,7 @@ class BotAnswers:
 
     @staticmethod
     def success_add_user_db(user_id: int, user_nik: str):
-        return f"Пользователь {user_nik} с номером id: {user_id} успешно добавлен."
+        return f"Пользователь {user_nik} с номером ID: {user_id} успешно добавлен."
 
     @staticmethod
     def choice_action_access():
@@ -165,11 +197,67 @@ class BotAnswers:
 
     @staticmethod
     def confirm_deletion(user_id: str):
-        return f"Подтвердите удаление пользователя id: {user_id}"
+        return f"Подтвердите удаление пользователя ID: {user_id}"
 
     @staticmethod
     def stop_admin_panel():
         return 'Панель администратора закрыта.'
+
+    @staticmethod
+    def monitoring():
+        return "Управление мониторингами:"
+
+    @staticmethod
+    def active_monitoring():
+        return "Активные мониторинги:"
+
+    @staticmethod
+    def get_active_monitoring(monitor_id: str, data: dict):
+        tickers = data['data']['tickers']
+        alert_type = "Линии" if data['data']['type_alert'] == 'line_alert' else "Боллинджер"
+        spread_type = "Валюта" if data['data']['spread_type'] == 'money' else "Проценты"
+        return (
+            f"ID: {monitor_id}\n"
+            f"Тикеры: {' '.join(tickers)}\n"
+            f"Тип оповещения: {alert_type}\n"
+            f"Тип спреда: {spread_type}\n\n"
+        )
+
+    @staticmethod
+    def start_monitoring(monitor_id: str):
+        return f"Мониторинг запущен.\nID: {monitor_id}"
+
+    @staticmethod
+    def stop_monitoring(monitor_id: str):
+        return f"Мониторинг остановлен.\nID: {monitor_id}"
+
+    @staticmethod
+    def not_monitoring():
+        return "Не удалось найти указанный мониторинг"
+
+    @staticmethod
+    def stop_all_monitoring(count: int):
+        return f"Остановлено {count} мониторингов"
+
+    @staticmethod
+    def not_active_monitoring():
+        return "У вас нет активных мониторингов"
+
+    @staticmethod
+    def select_action_monitoring():
+        return "Что нужно сделать с мониторингами?"
+
+    @staticmethod
+    def stop_one_monitor():
+        return 'Введите ID мониторинга, который нужно остановить:'
+
+    @staticmethod
+    def setting_updated(key: str, value: str) -> str:
+        return f"Настройка успешно обновлена:\n{key} = {value}"
+
+    @staticmethod
+    def setting_update_error() -> str:
+        return "Ошибка при обновлении настроек"
 
 
 if __name__ == '__main__':

@@ -8,11 +8,12 @@ def main_menu():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Получить информацию по спреду', callback_data='spread_info'),
         InlineKeyboardButton(text='Установить оповещения по спреду', callback_data='set_alerts'),
+        InlineKeyboardButton(text='Вывести список работающих мониторингов', callback_data='list_monitors'),
     )
 
 
-def menu_chancel():
-    return ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('/chancel'))
+def back_main_menu():
+    return ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('/back_main_menu'))
 
 
 def menu_instruments():
@@ -76,6 +77,13 @@ def menu_type_alert():
     )
 
 
+def menu_monitor_control():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Остановить все', callback_data='stop_all'),
+        InlineKeyboardButton(text='Остановить один', callback_data='stop_one'),
+    )
+
+
 def admin_menu():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Доступ к боту', callback_data='access'),
@@ -98,6 +106,32 @@ def confirm_menu():
         InlineKeyboardButton(text='Да', callback_data='yes'),
         InlineKeyboardButton(text='Нет', callback_data='no')
     )
+
+
+def settings_menu():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Редактировать настройки', callback_data='edit_settings'),
+        InlineKeyboardButton(text='Назад', callback_data='back_to_admin')
+    )
+
+
+def settings_edit_menu():
+    buttons = [
+        [
+            InlineKeyboardButton(text="Bollinger", callback_data="edit_bollinger"),
+            InlineKeyboardButton(text="SMA/EMA/ATR", callback_data="edit_ma")
+        ],
+        [
+            InlineKeyboardButton(text="Time Frame", callback_data="edit_timeframe"),
+            InlineKeyboardButton(text="Signals", callback_data="edit_signals")
+        ],
+        [
+            InlineKeyboardButton(text="Pairs", callback_data="edit_pairs"),
+            InlineKeyboardButton(text="Expiration", callback_data="edit_expiration")
+        ],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_settings")]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 if __name__ == '__main__':

@@ -2,14 +2,15 @@ from datetime import datetime
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-
 from loguru import logger
 
 from database.database_bot import BotDatabase
 from telegram_api.essence.answers_bot import BotAnswers
+from telegram_api.essence.keyboards import (main_menu, admin_menu, access_bot_menu, confirm_menu, settings_menu,
+                                            settings_edit_menu)
 from telegram_api.essence.state_machine import AdminPanel
-from telegram_api.essence.keyboards import main_menu, admin_menu, access_bot_menu, confirm_menu
 from utils.decorators import check_int
+from utils.settings_manager import settings_manager
 
 
 async def admin_panel(message: types.Message):
@@ -144,29 +145,105 @@ async def deleting_user(callback: types.CallbackQuery, state: FSMContext):
     await AdminPanel.what_edit.set()
 
 
+async def get_parameters_bot(callback: types.CallbackQuery):
+    await AdminPanel.view_settings.set()
+    settings = settings_manager.get_all_settings()
+    response = "Текущие настройки бота:\n\n"
+    for category, values in settings.items():
+        response += f"<b>{category.upper()}</b>:\n"
+        if isinstance(values, dict):
+            for key, val in values.items():
+                response += f"  {key}: {val}\n"
+        elif isinstance(values, (list, tuple)):
+            for item in values:
+                response += f"  - {item}\n"
+        else:
+            response += f"  {values}\n"
+        response += "\n"
+    await callback.message.answer(response, parse_mode='HTML')
+    await callback.message.answer("Выберите действие с настройками:", reply_markup=settings_menu())
 
+
+async def edit_settings_start(callback: types.CallbackQuery):
+    await callback.message.delete()
+    await AdminPanel.edit_settings_select.set()
+    await callback.message.answer("Выберите категорию настроек для редактирования:",
+                                  reply_markup=settings_edit_menu())
+
+
+async def select_setting_category(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    category = callback.data.split('_')[-1]
+    await state.update_data(category=category)
+    settings = settings_manager.get_setting(category)
+    if settings is None:
+        await callback.message.answer("Ошибка: категория настроек не найдена", reply_markup=settings_menu())
+        return
+    response = f"Текущие настройки категории <b>{category}</b>:\n\n"
+    if isinstance(settings, dict):
+        for key, val in settings.items():
+            response += f"{key}: {val}\n"
+    else:
+        response += str(settings)
+    await callback.message.answer(response, parse_mode='HTML')
+    await callback.message.answer(
+        "Введите название параметра и новое значение в формате:\n"
+        "<code>параметр = значение</code>\n\n"
+        "Например: <code>bollinger_period = 100</code>",
+        parse_mode='HTML'
+    )
+    await AdminPanel.edit_settings_value.set()
+
+
+async def edit_setting_value(message: types.Message, state: FSMContext):
+    try:
+        parts = [p.strip() for p in message.text.split('=')]
+        if len(parts) != 2:
+            raise ValueError("Неверный формат ввода")
+        param, value = parts
+        state_data = await state.get_data()
+        category = state_data['category']
+        try:
+            value = eval(value.strip())
+        except:
+            value = value.strip()
+        full_key = f"{category}.{param}"
+        if not settings_manager.update_setting(full_key, value):
+            await message.answer("Ошибка: не удалось обновить параметр", reply_markup=settings_menu())
+            return
+        if settings_manager.save_settings():
+            await message.answer(f"Параметр успешно обновлен:\n{full_key} = {value}", reply_markup=settings_menu())
+        else:
+            await message.answer("Ошибка при сохранении настроек в файл", reply_markup=settings_menu())
+        await AdminPanel.what_edit.set()
+        await message.answer(BotAnswers.what_edit(), reply_markup=admin_menu())
+    except Exception as e:
+        await message.answer(f"Ошибка: {str(e)}", reply_markup=settings_menu())
 
 
 async def register_handlers_admin_panel_commands(dp: Dispatcher):
     dp.register_message_handler(admin_panel, commands=['admin'], state='*')
     dp.register_callback_query_handler(get_all_ids_db, lambda callback: callback.data == 'get_users',
                                        state=AdminPanel.what_edit)
-    dp.register_callback_query_handler(get_history_signals_admin,
-                                       lambda callback: callback.data == 'get_signals',
+    dp.register_callback_query_handler(get_history_signals_admin, lambda callback: callback.data == 'get_signals',
                                        state=AdminPanel.what_edit)
-    dp.register_callback_query_handler(access_bot,
-                                       lambda callback: callback.data == 'access',
+    dp.register_callback_query_handler(access_bot, lambda callback: callback.data == 'access',
                                        state=AdminPanel.what_edit)
-    dp.register_callback_query_handler(access_bot_get_incoming_ids,
-                                       lambda callback: callback.data == 'add_user',
+    dp.register_callback_query_handler(access_bot_get_incoming_ids, lambda callback: callback.data == 'add_user',
                                        state=AdminPanel.access_bot)
-    dp.register_callback_query_handler(access_bot_get_allowed_ids,
-                                       lambda callback: callback.data == 'del_user',
+    dp.register_callback_query_handler(access_bot_get_allowed_ids, lambda callback: callback.data == 'del_user',
                                        state=AdminPanel.access_bot)
     dp.register_message_handler(set_user_id, state=(AdminPanel.add_user, AdminPanel.del_user))
     dp.register_message_handler(adding_user, state=AdminPanel.set_user_nik)
     dp.register_callback_query_handler(deleting_user, state=AdminPanel.del_user)
-    dp.register_callback_query_handler(stop_admin_panel, state=AdminPanel.what_edit)
+    dp.register_callback_query_handler(stop_admin_panel, lambda callback: callback.data == 'stop_admin', state='*')
+    dp.register_callback_query_handler(get_parameters_bot, lambda callback: callback.data == 'params',
+                                       state=AdminPanel.what_edit)
+    dp.register_callback_query_handler(edit_settings_start, lambda callback: callback.data == 'edit_settings',
+                                       state=AdminPanel.view_settings)
+    dp.register_callback_query_handler(select_setting_category, lambda callback: callback.data.startswith('edit_'),
+                                       state=AdminPanel.edit_settings_select)
+    dp.register_message_handler(edit_setting_value, state=AdminPanel.edit_settings_value)
 
 
 if __name__ == '__main__':
