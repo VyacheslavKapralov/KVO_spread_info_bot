@@ -1,3 +1,4 @@
+import asyncio
 import requests
 
 from datetime import datetime, timedelta
@@ -8,8 +9,8 @@ from bs4 import BeautifulSoup
 # "https://www.cbr.ru/scripts/XML_daily.asp" или "https://www.cbr-xml-daily.ru/latest.js"- курс валют
 
 @logger.catch()
-async def get_last_price_moex(ticker: str) -> float or None:
-    ticker_data = get_ticker_data(ticker)
+async def get_last_price_moex(ticker: str) -> list or None:
+    ticker_data = await get_ticker_data(ticker)
     boards = ticker_data["boards"]["data"][0][1]
     engines = ticker_data["boards"]["data"][0][7]
     markets = ticker_data["boards"]["data"][0][5]
@@ -21,12 +22,14 @@ async def get_last_price_moex(ticker: str) -> float or None:
             response.raise_for_status()
             response_json = response.json()
             columns = response_json["marketdata"]["columns"]
-            for num in range(len(columns)):
-                if markets == 'index' and columns[num] == 'CURRENTVALUE':
-                    return float(response_json["marketdata"]["data"][0][num])
-                if columns[num] == 'LAST':
-                    return float(response_json["marketdata"]["data"][0][num])
+            for col, num in enumerate(columns):
+                if markets == 'index' and col == 'CURRENTVALUE':
+                    return response_json["marketdata"]["data"][0][num]
+                if col == 'LAST':
+                    return response_json["marketdata"]["data"][0][num]
         except ConnectionResetError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
+        except TimeoutError as error:
             logger.error(f"Error - {error}: {error.with_traceback()}")
         except requests.HTTPError as error:
             logger.error(
@@ -34,6 +37,8 @@ async def get_last_price_moex(ticker: str) -> float or None:
                 f"Response: {error.response.text}"
             )
         count += 1
+        logger.debug(f"Повтор получения последней цены инструмента от МОЕХ. Количество попыток - {count}")
+        await asyncio.sleep(5)
 
 
 @logger.catch()
@@ -47,12 +52,16 @@ async def get_ticker_data(ticker: str) -> dict or None:
             return response.json()
         except ConnectionResetError as error:
             logger.error(f"Error - {error}: {error.with_traceback()}")
+        except TimeoutError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
         except requests.HTTPError as error:
             logger.error(
                 f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - "
                 f"Response: {error.response.text}"
             )
         count += 1
+        logger.debug(f"Повтор получения данных инструмента от МОЕХ. Количество попыток - {count}")
+        await asyncio.sleep(5)
 
 
 @logger.catch()
@@ -72,15 +81,20 @@ async def get_fixing(ticker: str) -> float or None:
             return response.json()['history']['data'][0][6]
         except ConnectionResetError as error:
             logger.error(f"Error - {error}: {error.with_traceback()}")
+        except TimeoutError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
         except requests.HTTPError as error:
             logger.error(
                 f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - "
                 f"Response: {error.response.text}"
             )
+        count += 1
+        logger.debug(f"Повтор получения фиксинга инструмента от МОЕХ. Количество попыток - {count}")
+        await asyncio.sleep(5)
 
 
 @logger.catch()
-async def get_key_rate_soup() -> float:
+async def get_key_rate_soup() -> float or None:
     url = 'https://www.cbr.ru/hd_base/keyrate/'
     try:
         response = requests.get(url)
@@ -90,10 +104,12 @@ async def get_key_rate_soup() -> float:
         if table_wrapper:
             rows = table_wrapper.split()
             today = datetime.now().strftime('%d.%m.%Y')
-            for num in range(len(rows)):
-                if rows[num] == today:
+            for row, num in enumerate(rows):
+                if row == today:
                     return float(rows[num + 1].replace(",", "."))
     except ConnectionResetError as error:
+        logger.error(f"Error - {error}: {error.with_traceback()}")
+    except TimeoutError as error:
         logger.error(f"Error - {error}: {error.with_traceback()}")
     except requests.HTTPError as error:
         logger.error(

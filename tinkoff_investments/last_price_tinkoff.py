@@ -10,7 +10,7 @@ TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
 
 
 @logger.catch()
-async def get_last_price(figi: str) -> str or None:
+async def get_last_price_tinkoff(figi: str) -> str or None:
     count = 0
     while count < 3:
         with Client(TOKEN) as client:

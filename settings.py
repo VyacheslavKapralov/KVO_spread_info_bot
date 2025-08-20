@@ -21,7 +21,7 @@ PARAMETERS = {
         # 'X': '11',
         'Z': '12'
     },
-    'time_frame_minutes': '15m',
+    'time_frame_minutes': '5m',
     'bollinger_period': 100,
     'bollinger_deviation': 2.0,
     'sma_period': 200,

@@ -29,7 +29,7 @@ async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
     ax = axlist[0]
     # ax.xaxis.set_major_locator(mdates.AutoDateLocator())
     ax.xaxis.set_major_locator(mdates.HourLocator(interval=485))
-    now_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    now_datetime = datetime.now().strftime('%Y_%m_%d %H-%M-%S')
     db_path = 'database/plots'
     os.makedirs(db_path, exist_ok=True)
     fig.savefig(f"{db_path}/{now_datetime}", dpi=600, bbox_inches='tight')

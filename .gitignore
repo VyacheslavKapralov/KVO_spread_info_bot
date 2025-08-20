@@ -2,4 +2,7 @@
 .env
 *.png
 *.log
+*.csv
+*.db
 .idea
+.gitignore

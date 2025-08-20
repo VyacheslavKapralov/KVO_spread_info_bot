@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 
+import pandas as pd
 # import pandas as pd
 from aiogram import types
 from loguru import logger
@@ -20,7 +21,6 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
     tickers = data['tickers']
     coefficients = data['coefficients']
     spread_type = data['spread_type']
-    type_alert = data['type_alert']
     max_spread = float(data['max_line'])
     min_spread = float(data['min_line'])
     signals = PARAMETERS['signals']
@@ -39,8 +39,7 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
             if not in_alert_zone and (max_spread <= spread or spread <= min_spread):
                 in_alert_zone = True
                 signals -= 1
-                await send_signal(message, tickers, type_alert, spread, spread_type, min_line=min_spread,
-                                  max_line=max_spread)
+                await send_signal_line(message, tickers, spread, spread_type, min_line=min_spread, max_line=max_spread)
             if in_alert_zone and min_spread < spread < max_spread:
                 in_alert_zone = False
             if in_alert_zone:
@@ -61,7 +60,6 @@ async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, 
     tickers = data['tickers']
     coefficients = data['coefficients']
     spread_type = data['spread_type']
-    type_alert = data['type_alert']
     count = 3
     first_condition = False
     while True:
@@ -76,28 +74,17 @@ async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, 
             data_frame = await add_dataframe_spread_bb(time_frame, coefficients, bollinger_deviation, bollinger_period,
                                                        tickers, spread_type)
             spread = await calculate_spread(coefficients, spread_type, tickers)
-            if first_condition or spread < data_frame['BBL'].iloc[-1]:
+            if not first_condition and (spread < data_frame['BBL'].iloc[-1] or spread > data_frame['BBU'].iloc[-1]):
                 first_condition = True
                 wait_time = await get_waiting_time(time_frame)
                 await asyncio.sleep(wait_time)
                 data_frame = await add_dataframe_spread_bb(time_frame, coefficients, bollinger_deviation,
                                                            bollinger_period, tickers, spread_type)
                 spread = await calculate_spread(coefficients, spread_type, tickers)
-                if spread > data_frame['BBL'].iloc[-1]:
-                    first_condition = False
-                    plot = await add_plot_spread(data_frame, f"{' '.join(tickers)}")
-                    await send_signal(callback.message, tickers, type_alert, spread, spread_type, plot=plot)
-            elif first_condition or spread > data_frame['BBU'].iloc[-1]:
-                first_condition = True
-                wait_time = await get_waiting_time(time_frame)
-                await asyncio.sleep(wait_time)
-                data_frame = await add_dataframe_spread_bb(time_frame, coefficients, bollinger_deviation,
-                                                           bollinger_period, tickers, spread_type)
-                spread = await calculate_spread(coefficients, spread_type, tickers)
-                if spread < data_frame['BBU'].iloc[-1]:
-                    first_condition = False
-                    plot = await add_plot_spread(data_frame, f"{' '.join(tickers)}")
-                    await send_signal(callback.message, tickers, type_alert, spread, spread_type, plot=plot)
+            if first_condition and (spread > data_frame['BBL'].iloc[-1] or spread < data_frame['BBU'].iloc[-1]):
+                first_condition = False
+                plot = await add_plot_spread(data_frame, f"{' '.join(tickers)}")
+                await send_signal_bb(callback, data_frame, tickers, spread, spread_type, plot)
         except (FigiRetrievalError, DataRetrievalError) as error:
             logger.error(f"Error: {error}. {error.message}")
             count -= 1
@@ -107,31 +94,46 @@ async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, 
         await asyncio.sleep(wait_time)
 
 
-async def send_signal(message: types.Message, tickers: list, type_alert: str, spread: float, spread_type: str,
-                      data_frame=None, min_line=0.0, max_line=0.0, plot=None):
-    info = "Спред: "
+async def send_signal_line(message: types.Message, tickers: list, spread: float, spread_type: str, min_line=0.0,
+                           max_line=0.0):
     if spread_type == 'money':
         spread_formula = f"{' - '.join(tickers)}"
         ending_string = f' = {spread} руб.'
     else:
         spread_formula = f"{' / '.join(tickers)}"
         ending_string = f' = {spread}%'
-    if type_alert == 'line_alert':
-        info = spread_formula + ending_string + f" пересек одну из линий: [{min_line} --- {max_line}]"
-        table_name = 'bot_lines_signals'
-        await message.answer(BotAnswers.result_calculation_indicator(spread, 'Спред', tickers, spread_type),
-                             reply_markup=back_main_menu())
-    else:
-        info += (f" пересек и вернулся за одну из линий Боллинджера: "
-                 f"[{round(data_frame['BBL'].iloc[-1], 2)} --- {round(data_frame['BBU'].iloc[-1], 2)}]")
-        table_name = 'bot_bb_signals'
-        await message.answer(BotAnswers.bollinger_bands_answer(tickers, spread, spread_type))
-        await message.answer_photo(photo=plot, caption=f"График для {spread_formula}", reply_markup=back_main_menu())
+    info = f"Спред: {spread_formula} {ending_string} пересек одну из линий: [{min_line} --- {max_line}]"
+    table_name = 'bot_lines_signals'
+    await message.answer(BotAnswers.result_calculation_indicator(spread, 'Спред', tickers, spread_type),
+                         reply_markup=back_main_menu())
     await BotDatabase().db_write(
         date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         table_name=table_name,
         user_name=message.from_user.username,
         user_id=message.from_user.id,
+        info=info
+    )
+
+
+async def send_signal_bb(callback: types.CallbackQuery, data_frame: pd.DataFrame, tickers: list, spread: float,
+                         spread_type: str, plot):
+    if spread_type == 'money':
+        spread_formula = f"{' - '.join(tickers)}"
+        ending_string = f' = {spread} руб.'
+    else:
+        spread_formula = f"{' / '.join(tickers)}"
+        ending_string = f' = {spread}%'
+    info = (f"Спред: {spread_formula} {ending_string} пересек и вернулся за одну из линий Боллинджера: "
+            f"[{round(data_frame['BBL'].iloc[-1], 2)} --- {round(data_frame['BBU'].iloc[-1], 2)}]")
+    table_name = 'bot_bb_signals'
+    await callback.message.answer(BotAnswers.bollinger_bands_answer(tickers, spread, spread_type))
+    await callback.message.answer_photo(photo=plot, caption=f"График для {spread_formula}",
+                                        reply_markup=back_main_menu())
+    await BotDatabase().db_write(
+        date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        table_name=table_name,
+        user_name=callback.from_user.username,
+        user_id=callback.from_user.id,
         info=info
     )
 

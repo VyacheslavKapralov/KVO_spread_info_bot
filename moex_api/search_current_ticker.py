@@ -1,3 +1,4 @@
+import asyncio
 import requests
 
 from datetime import datetime
@@ -25,7 +26,7 @@ async def get_ticker(name: str) -> None or str:
 
 
 @logger.catch()
-async def get_expiration_date(ticker: str):
+async def get_expiration_date(ticker: str) -> list or None:
     count = 0
     url = f"https://iss.moex.com/iss/securities/{ticker}.json"
     while count < 5:
@@ -38,12 +39,16 @@ async def get_expiration_date(ticker: str):
             return
         except ConnectionResetError as error:
             logger.error(f"Error - {error}: {error.with_traceback()}")
+        except TimeoutError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
         except requests.HTTPError as error:
             logger.error(
                 f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - "
                 f"Response: {error.response.text}"
             )
         count += 1
+        logger.debug(f"Повтор получения данных инструмента от МОЕХ. Количество попыток - {count}")
+        await asyncio.sleep(5)
 
 
 @logger.catch()
@@ -57,12 +62,16 @@ async def get_all_futures_moex() -> list or None:
             return response.json()["securities"]["data"]
         except ConnectionResetError as error:
             logger.error(f"Error - {error}: {error.with_traceback()}")
+        except TimeoutError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
         except requests.HTTPError as error:
             logger.error(
                 f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - "
                 f"Response: {error.response.text}"
             )
         count += 1
+        logger.debug(f"Повтор получения списка фьючерсов от МОЕХ. Количество попыток - {count}")
+        await asyncio.sleep(5)
 
 
 if __name__ == '__main__':

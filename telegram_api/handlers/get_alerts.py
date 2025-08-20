@@ -136,7 +136,8 @@ async def register_handlers_alerts(dp: Dispatcher):
     dp.register_message_handler(set_maximum_line_alert, state=Alert.max_line)
     dp.register_message_handler(stop_monitor, state=MonitoringControl.del_monitoring)
     dp.register_callback_query_handler(select_action_monitoring,
-                                       lambda callback: callback.data in ['stop_all', 'stop_one'])
+                                       lambda callback: callback.data in ['stop_all', 'stop_one'],
+                                       state='*')
     dp.register_callback_query_handler(list_monitors, lambda callback: callback.data == 'list_monitors',
                                        state='*')
 

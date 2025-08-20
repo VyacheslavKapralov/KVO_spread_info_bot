@@ -66,5 +66,5 @@ if __name__ == '__main__':
     try:
         executor.start_polling(dp, skip_updates=False, on_startup=main)
     except (ConnectionAbortedError, OSError, TimeoutError) as error:
-        logger.error(f"Error: {error}")
+        logger.error(f"Error: {error} --- {error.with_traceback()}")
     logger.warning('Прервана работа бота.')
