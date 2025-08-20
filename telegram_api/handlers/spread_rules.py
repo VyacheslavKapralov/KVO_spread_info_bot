@@ -126,9 +126,10 @@ async def send_signal_bb(callback: types.CallbackQuery, data_frame: pd.DataFrame
     info = (f"Спред: {spread_formula} {ending_string} пересек и вернулся за одну из линий Боллинджера: "
             f"[{round(data_frame['BBL'].iloc[-1], 2)} --- {round(data_frame['BBU'].iloc[-1], 2)}]")
     table_name = 'bot_bb_signals'
-    await callback.message.answer(BotAnswers.bollinger_bands_answer(tickers, spread, spread_type))
-    await callback.message.answer_photo(photo=plot, caption=f"График для {spread_formula}",
-                                        reply_markup=back_main_menu())
+    await callback.message.answer_photo(
+        photo=plot,
+        caption=f"{BotAnswers.bollinger_bands_answer(tickers, spread, spread_type)}", reply_markup=back_main_menu()
+    )
     await BotDatabase().db_write(
         date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         table_name=table_name,
