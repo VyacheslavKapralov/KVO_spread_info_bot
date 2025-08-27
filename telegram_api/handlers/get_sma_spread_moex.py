@@ -2,10 +2,10 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from loguru import logger
 
+from database.database_bot import db
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
 from telegram_api.essence.keyboards import menu_spread_type, menu_perpetual_futures, menu_quarterly_futures_and_stock
-from settings import PARAMETERS
 from utils.data_frame_pandas import calculate_sma, create_dataframe_spread
 
 
@@ -30,11 +30,13 @@ async def set_spread_type_sma(callback: types.CallbackQuery, state: FSMContext):
 
 
 async def get_spread_sma(callback: types.CallbackQuery, state: FSMContext):
+    time_frame_minutes = await db.get_setting('technical', 'time_frame_minutes')
+    sma_period = await db.get_setting('technical', 'sma_period')
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.expectation_answer())
-        df = await create_dataframe_spread(PARAMETERS['time_frame_minutes'], data['coefficients'], data['tickers'],
+        df = await create_dataframe_spread(time_frame_minutes, data['coefficients'], data['tickers'],
                                            data['spread_type'])
-        df_sma = await calculate_sma(df, PARAMETERS['sma_period'])
+        df_sma = await calculate_sma(df, sma_period)
         data['sma'] = round(df_sma['sma'].iloc[-1], 3)
     await sending_signal_sma(callback, data)
     await MainInfo.type_info.set()

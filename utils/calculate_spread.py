@@ -11,7 +11,7 @@ async def calculate_spread(coefficients_list: list, spread_type: str, tickers_li
     for num, ticker in enumerate(tickers_list):
         last_price = await get_price_for_figi(ticker)
         if not last_price:
-            return
+            return None
         last_prices_list.append(last_price * float(coefficients_list[num]))
     spread = last_prices_list[0]
     if spread_type == 'percent':
@@ -24,7 +24,7 @@ async def calculate_spread(coefficients_list: list, spread_type: str, tickers_li
         return round(spread, 3)
 
 
-async def get_price_for_figi(ticker: str) -> float or None:
+async def get_price_for_figi(ticker: str) -> float:
     figi = await searching_ticker_figi(ticker)
     if figi:
         last_price_tinkoff = await get_last_price_tinkoff(figi)

@@ -14,7 +14,7 @@ TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
 
 
 @logger.catch()
-async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -> list:
+async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -> list or None:
     interval = await get_candle_interval(candle_interval)
     candles_list = []
     count = 0
@@ -42,6 +42,7 @@ async def get_candles(candle_interval: str, figi: str, interval_day: int = 10) -
             count += 1
             await asyncio.sleep(5)
             continue
+    return None
 
 
 async def get_candle_interval(candle_interval: str) -> CandleInterval:

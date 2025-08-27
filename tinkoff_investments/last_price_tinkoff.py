@@ -24,6 +24,7 @@ async def get_last_price_tinkoff(figi: str) -> str or None:
                 count += 1
                 await asyncio.sleep(5)
                 continue
+    return None
 
 
 async def format_nano(nano: int) -> str:

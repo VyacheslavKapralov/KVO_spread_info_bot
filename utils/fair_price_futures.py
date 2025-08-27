@@ -20,10 +20,10 @@ async def get_fair_price_futures(ticker: str) -> float or None:
     ticker_data = await get_ticker_data(ticker)
     spot_price = None
     if not ticker_data:
-        return
+        return None
     interest_rate = await get_key_rate_soup()
     if not interest_rate:
-        return
+        return None
     if ticker.startswith('CR'):
         spot_price = await get_fixing('CNYFIXME')
     elif ticker.startswith('Si'):
@@ -43,10 +43,11 @@ async def get_fair_price_futures(ticker: str) -> float or None:
     elif ticker.startswith('MX'):
         spot_price = await get_last_price_moex('IMOEX')
     if not spot_price:
-        return
+        return None
     for elem in ticker_data['description']['data']:
         if elem[0] == 'LSTDELDATE':
             return round(await calculate_futures_price(spot_price, interest_rate, elem[2]), 2)
+    return None
 
 
 if __name__ == '__main__':

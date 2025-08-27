@@ -4,9 +4,8 @@ from aiogram.types import BotCommand, BotCommandScope
 from aiogram.utils import executor, exceptions
 from loguru import logger
 
-from database.database_bot import BotDatabase
+from database.database_bot import db
 from logs.start_log import log_telegram_bot
-from settings import PARAMETERS
 from telegram_api.connect_telegrambot import bot, dp
 from telegram_api.handlers import (
     commands,
@@ -28,12 +27,21 @@ async def set_bot_commands():
         scope = BotCommandScope()
         scope.type = "all_private_chats"
         await bot.delete_my_commands(scope)
-        bot_commands = [BotCommand(command=cmd, description=desc) for cmd, desc in PARAMETERS['commands'].items()]
+        commands_dict = await db.get_bot_commands()
+        bot_commands = [BotCommand(command=cmd, description=desc) for cmd, desc in commands_dict.items()]
         await bot.set_my_commands(bot_commands)
     except exceptions.NetworkError as error:
-        logger.error(f"Сетевая ошибка: {error} --- {error.with_traceback()}")
+        logger.error(f"Сетевая ошибка: {error}")
         await asyncio.sleep(5)
         await set_bot_commands()
+    except Exception as error:
+        logger.error(f"Ошибка при установке команд бота: {error}")
+        default_commands = [
+            BotCommand(command='start', description='Запустить бота'),
+            BotCommand(command='main_menu', description='Вернуться в главное меню'),
+            BotCommand(command='history', description='Вывести историю')
+        ]
+        await bot.set_my_commands(default_commands)
 
 
 @logger.catch()
@@ -41,7 +49,7 @@ async def main(_):
     count = 5
     while count > 0:
         try:
-            await BotDatabase().create_file_database()
+            await db.create_tables()
             await set_bot_commands()
             await commands.register_handlers_commands(dp)
             await get_atr_spread_moex.register_handlers_command_atr(dp)

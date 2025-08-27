@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from loguru import logger
 
-from settings import PARAMETERS
+from database.database_bot import db
 
 
 def main_menu():
@@ -16,14 +16,20 @@ def back_main_menu():
     return ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('/back_main_menu'))
 
 
-def menu_instruments():
+async def menu_instruments():
     keyboard = InlineKeyboardMarkup()
-    for type_tool, value in PARAMETERS['pairs'].items():
+    pairs = await db.get_pairs_formatted()
+    if not pairs:
+        await db.initialize_default_pairs()
+        pairs = await db.get_pairs_formatted()
+
+    for type_tool, pair_list in pairs.items():
         keyboard.add(InlineKeyboardButton(text=type_tool, callback_data="None"))
         row = []
-        for elem in value:
-            text_button = ' '.join(elem[0])
-            callback_data = f"{text_button.replace(' ', '_')};{elem[1]}"
+        for symbols, coefficients in pair_list:
+            text_button = ' '.join(symbols)
+            coeffs_str = str(coefficients).replace(' ', '')
+            callback_data = f"{text_button.replace(' ', '_')};{coeffs_str}"
             button = InlineKeyboardButton(text=text_button, callback_data=callback_data)
             row.append(button)
             if len(row) == 2:
@@ -31,6 +37,7 @@ def menu_instruments():
                 row = []
         if row:
             keyboard.add(*row)
+
     return keyboard
 
 
@@ -70,6 +77,7 @@ def menu_direction_position():
         InlineKeyboardButton(text='Покупка', callback_data='long'),
     )
 
+
 def menu_type_alert():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Пересечение горизонтальной линии', callback_data='line_alert'),
@@ -97,7 +105,8 @@ def admin_menu():
 def access_bot_menu():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Добавить пользователя в допущенные', callback_data='add_user'),
-        InlineKeyboardButton(text='Удалить пользователя из допущенных', callback_data='del_user')
+        InlineKeyboardButton(text='Удалить пользователя из допущенных', callback_data='del_user'),
+        InlineKeyboardButton(text="Назад", callback_data="back_to_admin")
     )
 
 
@@ -116,22 +125,16 @@ def settings_menu():
 
 
 def settings_edit_menu():
-    buttons = [
-        [
-            InlineKeyboardButton(text="Bollinger", callback_data="edit_bollinger"),
-            InlineKeyboardButton(text="SMA/EMA/ATR", callback_data="edit_ma")
-        ],
-        [
-            InlineKeyboardButton(text="Time Frame", callback_data="edit_timeframe"),
-            InlineKeyboardButton(text="Signals", callback_data="edit_signals")
-        ],
-        [
-            InlineKeyboardButton(text="Pairs", callback_data="edit_pairs"),
-            InlineKeyboardButton(text="Expiration", callback_data="edit_expiration")
-        ],
-        [InlineKeyboardButton(text="Назад", callback_data="back_to_settings")]
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    categories = [
+        'expiration_months', 'time_frame_minutes', 'bollinger_period',
+        'bollinger_deviation', 'sma_period', 'ema_period', 'atr_period',
+        'signals', 'pairs', 'commands'
     ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    for category in categories:
+        keyboard.add(InlineKeyboardButton(category, callback_data=f"edit_category-{category}"))
+    keyboard.add(InlineKeyboardButton(text="Назад", callback_data="back_to_admin"))
+    return keyboard
 
 
 if __name__ == '__main__':

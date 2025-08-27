@@ -52,7 +52,8 @@ async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMConte
                 raise
             data['tickers'].append(ticker)
         if data['perpetual']:
-            await callback.message.answer(BotAnswers.what_needs_sent(' '.join(data['tickers'])), reply_markup=menu_perpetual_futures())
+            await callback.message.answer(BotAnswers.what_needs_sent(' '.join(data['tickers'])),
+                                          reply_markup=menu_perpetual_futures())
             return
         await callback.message.answer(BotAnswers.what_needs_sent(' '.join(data['tickers'])),
                                       reply_markup=menu_quarterly_futures_and_stock())
@@ -81,7 +82,7 @@ async def command_get_info_spread(callback: types.CallbackQuery, state: FSMConte
     else:
         text = BotAnswers.get_info_spread()
     await callback.message.answer(text)
-    await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=menu_instruments())
+    await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=await menu_instruments())
 
 
 async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext):
@@ -107,7 +108,7 @@ async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext
     else:
         text = BotAnswers.get_info_spread()
     await callback.message.answer(text)
-    await callback.message.answer(BotAnswers.command_alerts(), reply_markup=menu_instruments())
+    await callback.message.answer(BotAnswers.command_alerts(), reply_markup=await menu_instruments())
 
 
 async def command_history(message: types.Message):

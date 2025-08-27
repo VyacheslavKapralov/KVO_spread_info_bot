@@ -2,12 +2,10 @@ import asyncio
 from datetime import datetime
 
 import pandas as pd
-# import pandas as pd
 from aiogram import types
 from loguru import logger
 
-from database.database_bot import BotDatabase
-from settings import PARAMETERS
+from database.database_bot import BotDatabase, db
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.keyboards import back_main_menu
 from tinkoff_investments.exceptions import FigiRetrievalError, DataRetrievalError
@@ -23,7 +21,6 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
     spread_type = data['spread_type']
     max_spread = float(data['max_line'])
     min_spread = float(data['min_line'])
-    signals = PARAMETERS['signals']
     count = 3
     in_alert_zone = False
     while True:
@@ -38,7 +35,6 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
             spread = await calculate_spread(coefficients, spread_type, tickers)
             if not in_alert_zone and (max_spread <= spread or spread <= min_spread):
                 in_alert_zone = True
-                signals -= 1
                 await send_signal_line(message, tickers, spread, spread_type, min_line=min_spread, max_line=max_spread)
             if in_alert_zone and min_spread < spread < max_spread:
                 in_alert_zone = False
@@ -54,9 +50,9 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
 
 
 async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, spread_monitor) -> None:
-    time_frame = PARAMETERS['time_frame_minutes']
-    bollinger_deviation = PARAMETERS['bollinger_deviation']
-    bollinger_period = PARAMETERS['bollinger_period']
+    time_frame = await db.get_setting('technical', 'time_frame_minutes')
+    bollinger_deviation = await db.get_setting('technical', 'bollinger_deviation')
+    bollinger_period = await db.get_setting('technical', 'bollinger_period')
     tickers = data['tickers']
     coefficients = data['coefficients']
     spread_type = data['spread_type']

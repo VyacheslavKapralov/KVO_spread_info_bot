@@ -16,7 +16,7 @@ TOKEN = TinkoffSettings().tinkoff_api.get_secret_value()
 @logger.catch()
 async def searching_ticker_figi(ticker: str, call_once: bool = True) -> str or None:
     if not call_once:
-        return
+        return None
     try:
         data = pd.read_csv('tinkoff_investments/ticker_to_figi.csv')
         figi_value = data.loc[data['ticker'] == ticker, 'figi']
@@ -25,11 +25,11 @@ async def searching_ticker_figi(ticker: str, call_once: bool = True) -> str or N
         tickers_df = await get_figi_to_tinkoff()
         if tickers_df:
             tickers_df.to_csv('tinkoff_investments/ticker_to_figi.csv', mode='w')
-            return await searching_ticker_figi(ticker, call_once=False)
+            return await searching_ticker_figi(ticker, False)
 
 
 @logger.catch()
-async def get_figi_to_tinkoff() -> pd.DataFrame:
+async def get_figi_to_tinkoff() -> pd.DataFrame or None:
     count = 0
     while count < 3:
         try:
@@ -67,6 +67,7 @@ async def get_figi_to_tinkoff() -> pd.DataFrame:
             count += 1
             await asyncio.sleep(5)
             continue
+    return None
 
 
 if __name__ == "__main__":

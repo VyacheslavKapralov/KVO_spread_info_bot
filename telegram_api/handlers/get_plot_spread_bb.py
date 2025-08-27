@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from loguru import logger
 
-from settings import PARAMETERS
+from database.database_bot import db
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.keyboards import menu_spread_type, menu_perpetual_futures, menu_quarterly_futures_and_stock
 from telegram_api.essence.state_machine import MainInfo
@@ -31,13 +31,16 @@ async def set_spread_type_bb(callback: types.CallbackQuery, state: FSMContext):
 
 
 async def get_spread_bb(callback: types.CallbackQuery, state: FSMContext):
+    time_frame_minutes = await db.get_setting('technical', 'time_frame_minutes')
+    bollinger_deviation = await db.get_setting('technical', 'bollinger_deviation')
+    bollinger_period = await db.get_setting('technical', 'bollinger_period')
     async with state.proxy() as data:
         await callback.message.answer(BotAnswers.expectation_answer())
     df = await add_dataframe_spread_bb(
-        PARAMETERS['time_frame_minutes'],
+        time_frame_minutes,
         data['coefficients'],
-        PARAMETERS['bollinger_deviation'],
-        PARAMETERS['bollinger_period'],
+        bollinger_deviation,
+        bollinger_period,
         data['tickers'],
         data['spread_type']
     )
