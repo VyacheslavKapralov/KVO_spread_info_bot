@@ -1,5 +1,6 @@
 import json
 from typing import Dict, Any, Optional
+
 from loguru import logger
 
 from database.database_bot import BotDatabase, db
@@ -68,7 +69,6 @@ class SettingsManager:
 
 
 settings_manager = SettingsManager(db)
-
 
 if __name__ == '__main__':
     logger.info('Running settings_manager.py from module utils')

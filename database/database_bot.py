@@ -135,7 +135,7 @@ class BotDatabase:
     async def connect_database(self):
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
-    async def save_setting(self, category: str, key: str, value: Any, value_type: str = 'str') -> bool:
+    async def save_setting(self, category: str, key: str, value: Any, value_type: str = 'auto') -> bool:
         try:
             connect = await self.connect_database()
             cursor = connect.cursor()
