@@ -51,7 +51,6 @@ def menu_expiring_futures():
         InlineKeyboardButton(text='Bollinger', callback_data='bollinger_bands'),
         InlineKeyboardButton(text='Fair Price', callback_data='fair_price'),
         InlineKeyboardButton(text='Fair Spread', callback_data='fair_spread'),
-        InlineKeyboardButton(text='Schedule Fair Spread', callback_data='schedule_fair_spread'),
         InlineKeyboardButton(text='Main Menu', callback_data='main_menu'),
     )
 
@@ -85,6 +84,7 @@ def menu_type_alert():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Пересечение горизонтальной линии', callback_data='line_alert'),
         InlineKeyboardButton(text='Пересечение линий Боллинджера', callback_data='bollinger_bands_alert'),
+        InlineKeyboardButton(text='Отклонение от справедливого спреда', callback_data='deviation_fair_spread'),
     )
 
 

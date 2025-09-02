@@ -21,6 +21,7 @@ class Alert(StatesGroup):
     type_spread = State()
     min_line = State()
     max_line = State()
+    deviation_fair_spread = State()
 
 
 class AdminPanel(StatesGroup):

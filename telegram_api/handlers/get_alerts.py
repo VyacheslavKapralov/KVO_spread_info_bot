@@ -11,7 +11,7 @@ from telegram_api.essence.keyboards import (menu_type_alert, menu_spread_type, m
                                             back_main_menu)
 from telegram_api.essence.spread_monitor import SpreadMonitor, generate_monitor_id
 from telegram_api.essence.state_machine import Alert, MonitoringControl
-from telegram_api.handlers.spread_rules import signal_line, signal_bb
+from telegram_api.handlers.spread_rules import signal_line, signal_bb, signal_deviation_fair_spread
 from utils.decorators import check_float
 
 spread_monitor = SpreadMonitor()
@@ -40,8 +40,10 @@ async def set_type_alert(callback: types.CallbackQuery, state: FSMContext):
         data['type_alert'] = callback.data
     if callback.data == 'line_alert':
         text = BotAnswers.line_alert()
-    else:
+    elif callback.data == 'bollinger_bands_alert':
         text = BotAnswers.bb_alert()
+    elif callback.data == 'deviation_fair_spread':
+        text = BotAnswers.fair_price_alert()
     await callback.message.answer(text)
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
@@ -60,11 +62,14 @@ async def set_type_spread_alert(callback: types.CallbackQuery, state: FSMContext
     if data['type_alert'] == 'line_alert':
         await Alert.min_line.set()
         await callback.message.answer(BotAnswers.grid_min_price_answer())
-    else:
+    elif data['type_alert'] == 'bollinger_bands_alert':
         await callback.message.answer(BotAnswers.expectation_answer())
         task = asyncio.create_task(signal_bb(data, callback, monitor_id, spread_monitor))
         await spread_monitor.add_monitor(callback.from_user.id, monitor_id, task, data)
         await callback.message.answer(BotAnswers.start_monitoring(monitor_id), reply_markup=back_main_menu())
+    elif data['type_alert'] == 'deviation_fair_spread':
+        await Alert.deviation_fair_spread.set()
+        await callback.message.answer(BotAnswers.deviation_fair_spread_answer())
 
 
 @check_float
@@ -82,6 +87,17 @@ async def set_maximum_line_alert(message: types.Message, state: FSMContext):
         monitor_id = data['monitor_id']
     await message.answer(BotAnswers.expectation_answer())
     task = asyncio.create_task(signal_line(data, message, monitor_id, spread_monitor))
+    await spread_monitor.add_monitor(message.from_user.id, monitor_id, task, data)
+    await message.answer(BotAnswers.start_monitoring(monitor_id), reply_markup=back_main_menu())
+
+
+@check_float
+async def set_deviation_fair_spread_alert(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['deviation_fair_spread'] = message.text
+        monitor_id = data['monitor_id']
+    await message.answer(BotAnswers.expectation_answer())
+    task = asyncio.create_task(signal_deviation_fair_spread(data, message, monitor_id, spread_monitor))
     await spread_monitor.add_monitor(message.from_user.id, monitor_id, task, data)
     await message.answer(BotAnswers.start_monitoring(monitor_id), reply_markup=back_main_menu())
 
@@ -134,6 +150,7 @@ async def register_handlers_alerts(dp: Dispatcher):
     dp.register_callback_query_handler(set_type_spread_alert, state=Alert.type_spread)
     dp.register_message_handler(set_minimum_line_alert, state=Alert.min_line)
     dp.register_message_handler(set_maximum_line_alert, state=Alert.max_line)
+    dp.register_message_handler(set_deviation_fair_spread_alert, state=Alert.deviation_fair_spread)
     dp.register_message_handler(stop_monitor, state=MonitoringControl.del_monitoring)
     dp.register_callback_query_handler(select_action_monitoring,
                                        lambda callback: callback.data in ['stop_all', 'stop_one'],

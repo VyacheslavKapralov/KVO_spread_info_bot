@@ -314,9 +314,26 @@ class BotDatabase:
             logger.error(f"Error renumbering pairs: {error}")
 
     async def db_write(self, date_time: str, table_name: str, user_name: str, user_id: str, info: str = '') -> None:
+        connect = await self.connect_database()
         try:
-            connect = await self.connect_database()
             cursor = connect.cursor()
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (table_name,)
+            )
+            table_exists = cursor.fetchone()
+            if not table_exists:
+                cursor.execute(
+                    f'''CREATE TABLE IF NOT EXISTS {table_name}
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                         date_time TEXT NOT NULL,
+                         user_name TEXT NOT NULL,
+                         user_id TEXT NOT NULL,
+                         info TEXT,
+                         UNIQUE(date_time, user_id))'''
+                )
+                connect.commit()
+                logger.info(f"Table {table_name} created")
             cursor.execute(
                 f'INSERT OR IGNORE INTO {table_name} '
                 '(date_time, user_name, user_id, info) '
@@ -324,9 +341,10 @@ class BotDatabase:
                 (date_time, user_name, user_id, info)
             )
             connect.commit()
-            connect.close()
         except sqlite3.Error as error:
             logger.error(f"Error writing to {table_name}: {error}")
+        finally:
+            connect.close()
 
     async def db_read(self, table_name: str, user_name: str) -> list:
         try:

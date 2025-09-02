@@ -51,19 +51,6 @@ async def get_fair_spread(callback: types.CallbackQuery, state: FSMContext):
     await MainInfo.type_info.set()
 
 
-async def schedule_fair_spread(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.edit_reply_markup(reply_markup=None)
-    async with state.proxy() as data:
-        for num, ticker in enumerate(data['tickers']):
-            ticker_data = await get_ticker_data(ticker)
-            for elem in ticker_data["description"]["data"]:
-                if elem[0] == 'TYPE' and elem[2] == 'futures':
-                    data[f"fair_price_{ticker}"] = await get_fair_price_futures_currency(ticker_data)
-
-    await callback.message.answer(BotAnswers().what_needs_sent(' '.join(data['tickers'])),
-                                  reply_markup=menu_expiring_futures())
-
-
 async def register_handlers_command_fair_price(dp: Dispatcher):
     dp.register_callback_query_handler(fair_price, lambda callback: callback.data == 'fair_price',
                                        state=MainInfo.type_info)
@@ -72,8 +59,6 @@ async def register_handlers_command_fair_price(dp: Dispatcher):
     dp.register_callback_query_handler(set_spread_type_fair_spread,
                                        lambda callback: callback.data in ['money', 'percent'],
                                        state=MainInfo.fair_spread_type)
-    dp.register_callback_query_handler(schedule_fair_spread, lambda callback: callback.data == 'schedule_fair_spread',
-                                       state=MainInfo.type_info)
 
 
 if __name__ == '__main__':
