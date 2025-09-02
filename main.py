@@ -16,7 +16,7 @@ from telegram_api.handlers import (
     get_plot_spread_bb,
     get_sma_spread_moex,
     get_spread_moex,
-    get_alerts,
+    set_alerts,
     admin_panel,
 )
 
@@ -56,7 +56,7 @@ async def main(_):
             await get_plot_spread_bb.register_handlers_command_bollinger_bands(dp)
             await get_sma_spread_moex.register_handlers_command_sma(dp)
             await get_spread_moex.register_handlers_command_spread(dp)
-            await get_alerts.register_handlers_alerts(dp)
+            await set_alerts.register_handlers_alerts(dp)
             await admin_panel.register_handlers_admin_panel_commands(dp)
             logger.success('Бот запущен')
             break

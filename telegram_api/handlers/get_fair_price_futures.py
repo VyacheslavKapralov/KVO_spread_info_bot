@@ -10,7 +10,7 @@ from utils.calculate_spread import calculate_spread
 from utils.fair_price_futures import get_fair_price_futures_currency, get_fair_spread_futures_currency
 
 
-async def fair_price(callback: types.CallbackQuery, state: FSMContext):
+async def get_fair_price(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup(reply_markup=None)
     async with state.proxy() as data:
         for ticker in data['tickers']:
@@ -26,7 +26,7 @@ async def fair_price(callback: types.CallbackQuery, state: FSMContext):
                                   reply_markup=menu_expiring_futures())
 
 
-async def fair_spread(callback: types.CallbackQuery):
+async def get_fair_spread(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.fair_spread_type.set()
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
@@ -36,10 +36,10 @@ async def set_spread_type_fair_spread(callback: types.CallbackQuery, state: FSMC
     await callback.message.delete()
     async with state.proxy() as data:
         data['spread_type'] = callback.data
-    await get_fair_spread(callback, state)
+    await sending_fair_spread(callback, state)
 
 
-async def get_fair_spread(callback: types.CallbackQuery, state: FSMContext):
+async def sending_fair_spread(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data['fair_spread'] = await get_fair_spread_futures_currency(data['tickers'], data['spread_type'])
         data['spread'] = await calculate_spread(data['coefficients'], data['spread_type'], data['tickers'])
@@ -52,9 +52,9 @@ async def get_fair_spread(callback: types.CallbackQuery, state: FSMContext):
 
 
 async def register_handlers_command_fair_price(dp: Dispatcher):
-    dp.register_callback_query_handler(fair_price, lambda callback: callback.data == 'fair_price',
+    dp.register_callback_query_handler(get_fair_price, lambda callback: callback.data == 'fair_price',
                                        state=MainInfo.type_info)
-    dp.register_callback_query_handler(fair_spread, lambda callback: callback.data == 'fair_spread',
+    dp.register_callback_query_handler(get_fair_spread, lambda callback: callback.data == 'fair_spread',
                                        state=MainInfo.type_info)
     dp.register_callback_query_handler(set_spread_type_fair_spread,
                                        lambda callback: callback.data in ['money', 'percent'],

@@ -29,10 +29,10 @@ async def set_direction_position(callback: types.CallbackQuery, state: FSMContex
     async with state.proxy() as data:
         data['direction_position'] = callback.data
     await callback.message.answer(BotAnswers.set_direction_position(callback.data, data['tickers']))
-    await get_funding_result(callback.message, state)
+    await set_funding(callback.message, state)
 
 
-async def get_funding_result(message: types.Message, state: FSMContext):
+async def set_funding(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['funding'] = []
         for ticker in data['tickers']:
@@ -40,11 +40,11 @@ async def get_funding_result(message: types.Message, state: FSMContext):
                 data['funding'].append((ticker, await calculate_funding(ticker)))
             else:
                 data['funding'].append((ticker, 0))
-    await sending_signal_funding(message, data)
+    await sending_funding(message, data)
     await MainInfo.type_info.set()
 
 
-async def sending_signal_funding(message: types.Message, data: dict):
+async def sending_funding(message: types.Message, data: dict):
     volume_position = data['position']
     funding_first_ticker = data['funding'][0][1]
     funding_last_ticker = data['funding'][-1][1]
@@ -56,7 +56,7 @@ async def sending_signal_funding(message: types.Message, data: dict):
             volume_average_ticker = volume_position * last_price_last_ticker
             result -= data['funding'][1][1] * volume_average_ticker
     else:
-        result = (-funding_first_ticker + funding_last_ticker) * volume_position
+        result = (funding_last_ticker - funding_first_ticker) * volume_position
         if len(data['funding']) == 3:
             last_price_last_ticker = await get_price_for_figi(data['funding'][-1][0])
             result = (funding_first_ticker + funding_last_ticker * last_price_last_ticker) * volume_position

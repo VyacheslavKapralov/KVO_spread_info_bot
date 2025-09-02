@@ -18,17 +18,17 @@ async def set_spread_type(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
         data['spread_type'] = callback.data
-    await get_spread(callback, state)
+    await set_spread(callback, state)
 
 
-async def get_spread(callback: types.CallbackQuery, state: FSMContext):
+async def set_spread(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data['spread'] = await calculate_spread(data['coefficients'], data['spread_type'], data['tickers'])
-    await sending_signal_spread(callback, data)
+    await sending_spread(callback, data)
     await MainInfo.type_info.set()
 
 
-async def sending_signal_spread(callback: types.CallbackQuery, data):
+async def sending_spread(callback: types.CallbackQuery, data):
     if data['expiring_futures']:
         reply_markup = menu_expiring_futures
     else:

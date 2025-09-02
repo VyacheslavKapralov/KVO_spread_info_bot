@@ -9,7 +9,7 @@ from telegram_api.essence.keyboards import menu_spread_type, menu_expiring_futur
 from utils.data_frame_pandas import calculate_ema, create_dataframe_spread
 
 
-async def exponential_ma(callback: types.CallbackQuery):
+async def get_exponential_ma(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.spread_type_ema.set()
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
@@ -19,10 +19,10 @@ async def set_spread_type_ema(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
         data['spread_type'] = callback.data
-    await get_spread_ema(callback, state)
+    await set_spread_ema(callback, state)
 
 
-async def get_spread_ema(callback: types.CallbackQuery, state: FSMContext):
+async def set_spread_ema(callback: types.CallbackQuery, state: FSMContext):
     time_frame_minutes = await db.get_setting('technical', 'time_frame_minutes')
     ema_period = await db.get_setting('technical', 'ema_period')
     async with state.proxy() as data:
@@ -30,11 +30,11 @@ async def get_spread_ema(callback: types.CallbackQuery, state: FSMContext):
                                            data['spread_type'])
         df_ema = await calculate_ema(df, ema_period)
         data['ema'] = round(df_ema['ema'].iloc[-1], 3)
-    await sending_signal_ema(callback, data)
+    await sending_ema(callback, data)
     await MainInfo.type_info.set()
 
 
-async def sending_signal_ema(callback: types.CallbackQuery, data: dict):
+async def sending_ema(callback: types.CallbackQuery, data: dict):
     if data['expiring_futures']:
         reply_markup = menu_expiring_futures
     else:
@@ -45,7 +45,7 @@ async def sending_signal_ema(callback: types.CallbackQuery, data: dict):
 
 
 async def register_handlers_command_ema(dp: Dispatcher):
-    dp.register_callback_query_handler(exponential_ma, lambda callback: callback.data == 'ema',
+    dp.register_callback_query_handler(get_exponential_ma, lambda callback: callback.data == 'ema',
                                        state=MainInfo.type_info)
     dp.register_callback_query_handler(set_spread_type_ema, lambda callback: callback.data in ['money', 'percent'],
                                        state=MainInfo.spread_type_ema)

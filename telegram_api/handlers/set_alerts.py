@@ -160,4 +160,4 @@ async def register_handlers_alerts(dp: Dispatcher):
 
 
 if __name__ == '__main__':
-    logger.info('Running get_alerts.py from module telegram_api/handlers')
+    logger.info('Running set_alerts.py from module telegram_api/handlers')

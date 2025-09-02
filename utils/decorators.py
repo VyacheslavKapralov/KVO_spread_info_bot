@@ -9,7 +9,7 @@ def check_float(func):
         try:
             if ',' in message.text:
                 message.text = message.text.replace(',', '.')
-            _ = float(message.text)
+            float(message.text)
             await func(message, state)
         except ValueError:
             await message.answer(BotAnswers.check_float_answer(message.text))
@@ -20,7 +20,7 @@ def check_float(func):
 def check_int(func):
     async def wrapper(message, state):
         try:
-            _ = int(message.text)
+            int(message.text)
             await func(message, state)
         except ValueError:
             await message.answer(BotAnswers.check_int_answer(message.text))

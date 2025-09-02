@@ -119,7 +119,7 @@ async def command_history(message: types.Message):
             user_id=message.from_user.id,
             info='command_start'
         )
-        return
+        return None
     history_line = await BotDatabase().db_read('bot_lines_signals', message.from_user.username)
     history_bollinger = await BotDatabase().db_read('bot_bb_signals', message.from_user.username)
     if not history_line and not history_bollinger:
@@ -130,6 +130,7 @@ async def command_history(message: types.Message):
     if history_bollinger:
         for elem in history_bollinger:
             await message.answer(BotAnswers.info_signal_database(elem[0], elem[4], elem[1], elem[2]))
+    return None
 
 
 async def register_handlers_commands(dp: Dispatcher):
