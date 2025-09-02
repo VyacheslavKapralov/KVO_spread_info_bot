@@ -5,15 +5,13 @@ from loguru import logger
 from database.database_bot import db
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_spread_type, menu_perpetual_futures, menu_quarterly_futures_and_stock
+from telegram_api.essence.keyboards import menu_spread_type, menu_expiring_futures, menu_futures_and_stock
 from utils.data_frame_pandas import calculate_atr, create_dataframe_spread
 
 
-async def average_true_range(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
+async def average_true_range(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.spread_type_atr.set()
-    async with state.proxy() as data:
-        await callback.message.answer(f"ATR спреда для {' '.join(data['tickers'])}")
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
@@ -21,11 +19,6 @@ async def set_spread_type_atr(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
         data['spread_type'] = callback.data
-    if callback.data == 'money':
-        text = BotAnswers.money_spread()
-    else:
-        text = BotAnswers.percent_spread()
-    await callback.message.answer(text)
     await get_spread_atr(callback, state)
 
 
@@ -33,7 +26,6 @@ async def get_spread_atr(callback: types.CallbackQuery, state: FSMContext):
     time_frame_minutes = await db.get_setting('technical', 'time_frame_minutes')
     atr_period = await db.get_setting('technical', 'atr_period')
     async with state.proxy() as data:
-        await callback.message.answer(BotAnswers.expectation_answer())
         df = await create_dataframe_spread(time_frame_minutes, data['coefficients'], data['tickers'],
                                            data['spread_type'])
         df_atr = await calculate_atr(df, atr_period)
@@ -43,10 +35,10 @@ async def get_spread_atr(callback: types.CallbackQuery, state: FSMContext):
 
 
 async def sending_signal_atr(callback: types.CallbackQuery, data: dict):
-    if data['perpetual']:
-        reply_markup = menu_perpetual_futures
+    if data['expiring_futures']:
+        reply_markup = menu_expiring_futures
     else:
-        reply_markup = menu_quarterly_futures_and_stock
+        reply_markup = menu_futures_and_stock
     await callback.message.answer(
         BotAnswers().result_calculation_indicator(data['atr'], 'ATR', data['tickers'],
                                                       data['spread_type']), reply_markup=reply_markup())

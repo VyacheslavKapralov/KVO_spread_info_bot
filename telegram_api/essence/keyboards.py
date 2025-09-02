@@ -41,25 +41,28 @@ async def menu_instruments():
     return keyboard
 
 
-def menu_perpetual_futures():
-    return InlineKeyboardMarkup(row_width=4).add(
+def menu_expiring_futures():
+    return InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(text='Spread', callback_data='spread'),
         InlineKeyboardButton(text='Funding', callback_data='funding'),
         InlineKeyboardButton(text='EMA', callback_data='ema'),
         InlineKeyboardButton(text='SMA', callback_data='sma'),
         InlineKeyboardButton(text='ATR', callback_data='atr'),
-        InlineKeyboardButton(text='BollingerBands', callback_data='bollinger_bands'),
+        InlineKeyboardButton(text='Bollinger', callback_data='bollinger_bands'),
+        InlineKeyboardButton(text='Fair Price', callback_data='fair_price'),
+        InlineKeyboardButton(text='Fair Spread', callback_data='fair_spread'),
+        InlineKeyboardButton(text='Schedule Fair Spread', callback_data='schedule_fair_spread'),
         InlineKeyboardButton(text='Main Menu', callback_data='main_menu'),
     )
 
 
-def menu_quarterly_futures_and_stock():
+def menu_futures_and_stock():
     return InlineKeyboardMarkup(row_width=4).add(
         InlineKeyboardButton(text='Spread', callback_data='spread'),
         InlineKeyboardButton(text='EMA', callback_data='ema'),
         InlineKeyboardButton(text='SMA', callback_data='sma'),
         InlineKeyboardButton(text='ATR', callback_data='atr'),
-        InlineKeyboardButton(text='BollingerBands', callback_data='bollinger_bands'),
+        InlineKeyboardButton(text='Bollinger', callback_data='bollinger_bands'),
         InlineKeyboardButton(text='Main Menu', callback_data='main_menu'),
     )
 

@@ -41,8 +41,6 @@ class BotDatabase:
                 logger.error(f"Error creating table {table_name}: {error}")
         connect.commit()
         connect.close()
-
-        # Инициализация настроек по умолчанию
         await self.initialize_default_settings()
 
     async def initialize_default_settings(self):
@@ -82,24 +80,24 @@ class BotDatabase:
 
     async def initialize_default_pairs(self):
         default_pairs = {
-            'Валютные фьючерсы вечные к квартальным': [
+            'Валюта: вечные к квартальным': [
                 (('CR', 'CNYRUBF'), (1, 1)),
                 (('Eu', 'EURRUBF'), (0.001, 1)),
                 (('Si', 'USDRUBF'), (0.001, 1)),
             ],
-            'Gold': [
+            'Золото': [
                 (('GL', 'GLDRUBF'), (1, 1)),
                 (('GLDRUBF', 'Si', 'GD'), (31.1035, 0.001, 1)),
                 (('GLDRUBF', 'USDRUBF', 'GD'), (31.1035, 1, 1)),
                 (('GD', 'SV'), (1, 1))
             ],
-            'Фьючерсы на акции вечные к квартальным': [
+            'Акции: вечные к квартальным': [
                 (('GZ', 'GAZPF'), (0.01, 1)),
                 (('MX', 'IMOEXF'), (0.1, 1)),
                 (('SP', 'SBERF'), (0.01, 1)),
                 (('SR', 'SBERF'), (0.01, 1)),
             ],
-            'Синтетические валюты к квартальным фьючерсам': [
+            'Синтетические валюты': [
                 (('Eu', 'Si', 'ED'), (1, 1, 1)),
                 (('EURRUBF', 'USDRUBF', 'ED'), (1, 1, 1)),
                 (('Eu', 'USDRUBF', 'ED'), (0.001, 1, 1)),

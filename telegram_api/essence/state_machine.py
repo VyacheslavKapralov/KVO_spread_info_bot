@@ -6,6 +6,7 @@ class MainInfo(StatesGroup):
     pare_ticker = State()
     type_info = State()
     spread_type = State()
+    fair_spread_type = State()
     spread_type_ema = State()
     spread_type_sma = State()
     spread_type_atr = State()

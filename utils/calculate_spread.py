@@ -24,6 +24,18 @@ async def calculate_spread(coefficients_list: list, spread_type: str, tickers_li
         return round(spread, 3)
 
 
+async def calculate_fair_spread(prices: list, spread_type: str) -> float or None:
+    spread = prices[0]
+    if spread_type == 'percent':
+        for elem in prices[1:]:
+            spread /= elem
+        return round((spread - 1) * 100, 2)
+    else:
+        for elem in prices[1:]:
+            spread -= elem
+        return round(spread, 3)
+
+
 async def get_price_for_figi(ticker: str) -> float:
     figi = await searching_ticker_figi(ticker)
     if figi:

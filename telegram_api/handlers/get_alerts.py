@@ -18,7 +18,7 @@ spread_monitor = SpreadMonitor()
 
 
 async def set_tickers_alert(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
+    await callback.message.edit_reply_markup(reply_markup=None)
     await Alert.type_alert.set()
     async with state.proxy() as data:
         data['tickers'] = []

@@ -104,9 +104,39 @@ async def get_key_rate_soup() -> float or None:
         if table_wrapper:
             rows = table_wrapper.split()
             today = datetime.now().strftime('%d.%m.%Y')
-            for row, num in enumerate(rows):
+            for num, row in enumerate(rows):
                 if row == today:
                     return float(rows[num + 1].replace(",", "."))
+    except ConnectionResetError as error:
+        logger.error(f"Error - {error}: {error.with_traceback()}")
+    except TimeoutError as error:
+        logger.error(f"Error - {error}: {error.with_traceback()}")
+    except requests.HTTPError as error:
+        logger.error(
+            f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - "
+            f"Response: {error.response.text}"
+        )
+
+
+@logger.catch()
+async def get_exchange_rate_soup(ticker: str) -> float or None:
+    url = 'https://www.cbr.ru/currency_base/daily/'
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        table = soup.find('table', class_='data')
+        if not table:
+            return None
+        rows = table.find_all('tr')[1:]
+        for row in rows:
+            cells = row.find_all('td')
+            if len(cells) >= 5:
+                currency_code = cells[1].text.strip()
+                if currency_code == ticker:
+                    rate = cells[4].text.strip().replace(',', '.')
+                    return float(rate)
+        return None
     except ConnectionResetError as error:
         logger.error(f"Error - {error}: {error.with_traceback()}")
     except TimeoutError as error:

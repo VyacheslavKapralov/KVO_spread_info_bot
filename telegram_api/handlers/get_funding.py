@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
-from telegram_api.essence.keyboards import menu_perpetual_futures, menu_direction_position
+from telegram_api.essence.keyboards import menu_expiring_futures, menu_direction_position
 from telegram_api.essence.state_machine import MainInfo
 from utils.calculate_funding import calculate_funding
 from utils.calculate_spread import get_price_for_figi
@@ -11,10 +11,8 @@ from utils.decorators import check_int
 
 
 async def get_funding(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
+    await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.volume_position.set()
-    async with state.proxy() as data:
-        await callback.message.answer(BotAnswers.funding(data['tickers']))
     await callback.message.answer(BotAnswers.position())
 
 
@@ -23,7 +21,6 @@ async def set_position(message: types.Message, state: FSMContext):
     await MainInfo.direction_position.set()
     async with state.proxy() as data:
         data['position'] = int(message.text)
-    await message.answer(BotAnswers.count_lots(message.text))
     await message.answer(BotAnswers.direction_position(), reply_markup=menu_direction_position())
 
 
@@ -37,7 +34,6 @@ async def set_direction_position(callback: types.CallbackQuery, state: FSMContex
 
 async def get_funding_result(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        await message.answer(BotAnswers.expectation_answer())
         data['funding'] = []
         for ticker in data['tickers']:
             if ticker[-1] == 'F':
@@ -67,7 +63,7 @@ async def sending_signal_funding(message: types.Message, data: dict):
             volume_average_ticker = volume_position * last_price_last_ticker
             result += data['funding'][1][1] * volume_average_ticker
     await message.answer(BotAnswers().result_calculation_funding(round(result, 2), ' '.join(data['tickers'])),
-                         reply_markup=menu_perpetual_futures())
+                         reply_markup=menu_expiring_futures())
 
 
 async def register_handlers_command_funding(dp: Dispatcher):

@@ -42,6 +42,14 @@ class BotAnswers:
         return f"Справедливая цена фьючерса {ticker}: {number}"
 
     @staticmethod
+    def result_fair_spread_futures(fair_spread: float, spread: float, tickers: list, spread_type: str) -> str:
+        if spread_type == 'money':
+            return (f"Справедливый спред фьючерсов:\n{' - '.join(tickers)} = {fair_spread} руб.\n"
+                    f"Текущий спред: {spread} руб. Разница {round(fair_spread - spread, 3)} руб.")
+        return (f"Справедливый спред фьючерсов:\n{' / '.join(tickers)} = {fair_spread}%\n"
+                f"Текущий спред: {spread}%. Разница {round(fair_spread - spread, 3)}%")
+
+    @staticmethod
     def spread_type() -> str:
         return 'Выберите в каком виде отображать спред:'
 

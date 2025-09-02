@@ -8,7 +8,7 @@ from loguru import logger
 from database.database_bot import BotDatabase
 from moex_api.search_current_ticker import get_ticker
 from telegram_api.essence.answers_bot import BotAnswers
-from telegram_api.essence.keyboards import (main_menu, menu_perpetual_futures, menu_quarterly_futures_and_stock,
+from telegram_api.essence.keyboards import (main_menu, menu_expiring_futures, menu_futures_and_stock,
                                             menu_instruments)
 from telegram_api.essence.state_machine import MainInfo, Alert
 
@@ -39,24 +39,21 @@ async def command_main_menu_callback(callback: types.CallbackQuery):
 async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await MainInfo.type_info.set()
+    keyboard = menu_futures_and_stock()
     async with state.proxy() as data:
         data['tickers'] = []
+        data['expiring_futures'] = False
         data['coefficients'] = callback.data.split(';')[1].strip('()').replace(' ', '').split(',')
         tickers = callback.data.split(';')[0]
-        data['perpetual'] = False
         for elem in tickers.split('_'):
-            if elem[-1] == 'F':
-                data['perpetual'] = True
+            if len(elem) == 2:
+                data['expiring_futures'] = True
+                keyboard = menu_expiring_futures()
             ticker = await get_ticker(elem)
             if not ticker:
                 raise
             data['tickers'].append(ticker)
-        if data['perpetual']:
-            await callback.message.answer(BotAnswers.what_needs_sent(' '.join(data['tickers'])),
-                                          reply_markup=menu_perpetual_futures())
-            return
-        await callback.message.answer(BotAnswers.what_needs_sent(' '.join(data['tickers'])),
-                                      reply_markup=menu_quarterly_futures_and_stock())
+        await callback.message.answer(BotAnswers.what_needs_sent(' '.join(data['tickers'])), reply_markup=keyboard)
 
 
 async def command_get_info_spread(callback: types.CallbackQuery, state: FSMContext):

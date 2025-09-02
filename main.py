@@ -22,7 +22,9 @@ from telegram_api.handlers import (
 
 
 @logger.catch()
-async def set_bot_commands():
+async def set_bot_commands(count: int = 0):
+    if count == 4:
+        return
     try:
         scope = BotCommandScope()
         scope.type = "all_private_chats"
@@ -31,17 +33,12 @@ async def set_bot_commands():
         bot_commands = [BotCommand(command=cmd, description=desc) for cmd, desc in commands_dict.items()]
         await bot.set_my_commands(bot_commands)
     except exceptions.NetworkError as error:
+        count += 1
         logger.error(f"Сетевая ошибка: {error}")
         await asyncio.sleep(5)
-        await set_bot_commands()
+        await set_bot_commands(count)
     except Exception as error:
         logger.error(f"Ошибка при установке команд бота: {error}")
-        default_commands = [
-            BotCommand(command='start', description='Запустить бота'),
-            BotCommand(command='main_menu', description='Вернуться в главное меню'),
-            BotCommand(command='history', description='Вывести историю')
-        ]
-        await bot.set_my_commands(default_commands)
 
 
 @logger.catch()
