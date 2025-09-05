@@ -28,10 +28,22 @@ class BotAnswers:
         return f"{indicator_type}: {' / '.join(tickers)} = {number}%"
 
     @staticmethod
-    def bollinger_bands_answer(tickers: list, spread: float, spread_type: str) -> str:
+    def bollinger_bands_signal_answer(tickers: list, spread: float, spread_type: str) -> str:
         if spread_type == 'money':
             return f"Возврат спреда в канал линий Боллинджера.\nСпред: {' - '.join(tickers)} = {spread} руб."
         return f"Возврат спреда в канал линий Боллинджера.\nСпред: {' / '.join(tickers)} = {spread}%"
+
+    @staticmethod
+    def lines_signal_answer(tickers: list, spread: float, spread_type: str, min_line: float, max_line: float) -> str:
+        if spread_type == 'money':
+            return f"Спред: {' - '.join(tickers)} = {spread} руб. пересек одну из линий: {max_line} --- {min_line}"
+        return f"Спред: {' / '.join(tickers)} = {spread}% пересек одну из линий: {max_line} --- {min_line}"
+
+    @staticmethod
+    def deviation_fair_spread_signal_answer(tickers: list, spread: float, spread_type: str, fair_spread: float) -> str:
+        if spread_type == 'money':
+            return f"Спред: {' - '.join(tickers)} = {spread} руб. отклонился от справедливого спреда = {fair_spread}."
+        return f"Спред: {' / '.join(tickers)} = {spread}% отклонился от справедливого спреда = {fair_spread}."
 
     @staticmethod
     def result_calculation_funding(number: float, ticker: str) -> str:
@@ -40,6 +52,14 @@ class BotAnswers:
     @staticmethod
     def result_fair_price_futures(number: float, ticker: str) -> str:
         return f"Справедливая цена фьючерса {ticker}: {number}"
+
+    @staticmethod
+    def result_fair_spread_futures(fair_spread: float, spread: float, tickers: list, spread_type: str) -> str:
+        if spread_type == 'money':
+            return (f"Справедливый спред фьючерсов:\n{' - '.join(tickers)} = {fair_spread} руб.\n"
+                    f"Текущий спред: {spread} руб. Разница {round(fair_spread - spread, 3)} руб.")
+        return (f"Справедливый спред фьючерсов:\n{' / '.join(tickers)} = {fair_spread}%\n"
+                f"Текущий спред: {spread}%. Разница {round(fair_spread - spread, 3)}%")
 
     @staticmethod
     def spread_type() -> str:
@@ -86,6 +106,10 @@ class BotAnswers:
         return 'Пересечение линий Боллинджера'
 
     @staticmethod
+    def fair_price_alert():
+        return 'Отклонение от справедливого спреда'
+
+    @staticmethod
     def money_spread():
         return 'Значение спреда в валюте'
 
@@ -114,6 +138,10 @@ class BotAnswers:
     @staticmethod
     def grid_min_price_answer() -> str:
         return 'Укажите нижнюю границу спреда:'
+
+    @staticmethod
+    def deviation_fair_spread_answer() -> str:
+        return 'Укажите границу отклонения справедливого спреда:'
 
     @staticmethod
     def check_float_answer(text) -> str:

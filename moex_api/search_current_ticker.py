@@ -5,7 +5,7 @@ from datetime import datetime
 
 from loguru import logger
 
-from settings import PARAMETERS
+from database.database_bot import db
 
 
 @logger.catch()
@@ -13,8 +13,10 @@ async def get_ticker(name: str) -> None or str:
     if len(name) != 2:
         return name
     current_date = datetime.now().date()
-    for key, val in PARAMETERS['expiration_months'].items():
-        if int(val) < datetime.now().month:
+    expiration_months = await db.get_expiration_months()
+    for key, val in expiration_months.items():
+        month_num = int(val)
+        if month_num < datetime.now().month:
             continue
         ticker = name + key + str(datetime.now().year)[-1]
         expiration = await get_expiration_date(ticker)
@@ -23,6 +25,16 @@ async def get_ticker(name: str) -> None or str:
         expiration_date = datetime.strptime(expiration, "%Y-%m-%d").date()
         if current_date < expiration_date:
             return ticker
+    next_year_short = str(datetime.now().year + 1)[-1]
+    for key, val in expiration_months.items():
+        ticker = name + key + next_year_short
+        expiration = await get_expiration_date(ticker)
+        if not expiration:
+            continue
+        expiration_date = datetime.strptime(expiration, "%Y-%m-%d").date()
+        if current_date < expiration_date:
+            return ticker
+    return None
 
 
 @logger.catch()

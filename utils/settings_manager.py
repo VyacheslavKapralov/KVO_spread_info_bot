@@ -1,68 +1,74 @@
 import json
-from pathlib import Path
 from typing import Dict, Any, Optional
+
 from loguru import logger
 
-from settings import PARAMETERS
+from database.database_bot import BotDatabase, db
 
 
 class SettingsManager:
-    def __init__(self, settings_file: str = "settings.py"):
-        self.settings_file = Path(settings_file)
-        self.settings = PARAMETERS.copy()
+    def __init__(self, database: BotDatabase):
+        self.db = database
 
-    def get_all_settings(self) -> Dict[str, Any]:
-        return self.settings
+    async def get_all_settings(self) -> Dict[str, Any]:
+        settings = await self.db.get_all_settings()
+        result = {
+            'expiration_months': settings.get('expiration'),
+            'time_frame_minutes': settings.get('technical').get('time_frame_minutes'),
+            'bollinger_period': settings.get('technical').get('bollinger_period'),
+            'bollinger_deviation': settings.get('technical').get('bollinger_deviation'),
+            'sma_period': settings.get('technical').get('sma_period'),
+            'ema_period': settings.get('technical').get('ema_period'),
+            'atr_period': settings.get('technical').get('atr_period'),
+            'signals': settings.get('technical').get('signals'),
+            'pairs': await self.db.get_pairs(),
+            'commands': settings.get('commands')
+        }
+        return result
 
-    def get_setting(self, key: str) -> Optional[Any]:
+    async def get_setting(self, key: str) -> Optional[Any]:
         keys = key.split('.')
-        value = self.settings
-        try:
-            for k in keys:
-                value = value[k]
-            return value
-        except (KeyError, TypeError):
-            return None
+        if len(keys) == 1:
+            return await self.db.get_setting('technical', keys[0])
+        elif len(keys) == 2:
+            return await self.db.get_setting(keys[0], keys[1])
+        return None
 
-    def update_setting(self, key: str, value: Any) -> bool:
+    async def update_setting(self, key: str, value: Any) -> bool:
         keys = key.split('.')
-        current = self.settings
-        try:
-            for k in keys[:-1]:
-                current = current[k]
-            current[keys[-1]] = value
-            return True
-        except (KeyError, TypeError):
+        if len(keys) == 1:
+            category = 'technical'
+            setting_key = keys[0]
+        elif len(keys) == 2:
+            category, setting_key = keys
+        else:
             return False
+        if isinstance(value, int):
+            value_type = 'int'
+        elif isinstance(value, float):
+            value_type = 'float'
+        elif isinstance(value, bool):
+            value_type = 'bool'
+        elif isinstance(value, (list, tuple)):
+            value_type = 'list'
+            value = json.dumps(value)
+        else:
+            value_type = 'str'
+        return await self.db.save_setting(category, setting_key, value, value_type)
 
-    def save_settings(self) -> bool:
-        try:
-            with open(self.settings_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-            start_idx = None
-            end_idx = None
-            for i, line in enumerate(lines):
-                if 'PARAMETERS = {' in line:
-                    start_idx = i
-                elif start_idx is not None and line.strip() == '}':
-                    end_idx = i
-                    break
-            if start_idx is None or end_idx is None:
-                raise ValueError("Не удалось найти блок PARAMETERS в файле настроек")
-            new_settings = json.dumps(self.settings, indent=4, ensure_ascii=False)
-            new_settings = new_settings.replace('{', '{\n').replace('}', '\n}')
-            new_settings_lines = ["PARAMETERS = " + new_settings + "\n"]
-            updated_lines = lines[:start_idx] + new_settings_lines + lines[end_idx + 1:]
-            with open(self.settings_file, 'w', encoding='utf-8') as f:
-                f.writelines(updated_lines)
-            return True
-        except Exception as e:
-            logger.error(f"Ошибка при сохранении настроек: {e}")
+    async def delete_setting(self, key: str) -> bool:
+        keys = key.split('.')
+        if len(keys) == 1:
+            category = 'technical'
+            setting_key = keys[0]
+        elif len(keys) == 2:
+            category, setting_key = keys
+        else:
             return False
+        return await self.db.delete_setting(category, setting_key)
 
 
-settings_manager = SettingsManager()
-
+settings_manager = SettingsManager(db)
 
 if __name__ == '__main__':
     logger.info('Running settings_manager.py from module utils')

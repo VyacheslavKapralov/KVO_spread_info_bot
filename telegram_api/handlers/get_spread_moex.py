@@ -4,15 +4,13 @@ from loguru import logger
 
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.state_machine import MainInfo
-from telegram_api.essence.keyboards import menu_spread_type, menu_perpetual_futures, menu_quarterly_futures_and_stock
+from telegram_api.essence.keyboards import menu_spread_type, menu_expiring_futures, menu_futures_and_stock
 from utils.calculate_spread import calculate_spread
 
 
-async def get_spread_moex(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
+async def get_spread_moex(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.spread_type.set()
-    async with state.proxy() as data:
-        await callback.message.answer(f"Спред для {' '.join(data['tickers'])}")
     await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
@@ -20,27 +18,21 @@ async def set_spread_type(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
         data['spread_type'] = callback.data
-    if callback.data == 'money':
-        text = BotAnswers.money_spread()
-    else:
-        text = BotAnswers.percent_spread()
-    await callback.message.answer(text)
-    await get_spread(callback, state)
+    await set_spread(callback, state)
 
 
-async def get_spread(callback: types.CallbackQuery, state: FSMContext):
+async def set_spread(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
-        await callback.message.answer(BotAnswers.expectation_answer())
         data['spread'] = await calculate_spread(data['coefficients'], data['spread_type'], data['tickers'])
-    await sending_signal_spread(callback, data)
+    await sending_spread(callback, data)
     await MainInfo.type_info.set()
 
 
-async def sending_signal_spread(callback: types.CallbackQuery, data):
-    if data['perpetual']:
-        reply_markup = menu_perpetual_futures
+async def sending_spread(callback: types.CallbackQuery, data):
+    if data['expiring_futures']:
+        reply_markup = menu_expiring_futures
     else:
-        reply_markup = menu_quarterly_futures_and_stock
+        reply_markup = menu_futures_and_stock
     await callback.message.answer(
         BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tickers'],
                                                       data['spread_type']), reply_markup=reply_markup())

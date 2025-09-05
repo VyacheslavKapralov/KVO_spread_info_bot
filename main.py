@@ -4,9 +4,8 @@ from aiogram.types import BotCommand, BotCommandScope
 from aiogram.utils import executor, exceptions
 from loguru import logger
 
-from database.database_bot import BotDatabase
+from database.database_bot import db
 from logs.start_log import log_telegram_bot
-from settings import PARAMETERS
 from telegram_api.connect_telegrambot import bot, dp
 from telegram_api.handlers import (
     commands,
@@ -17,23 +16,29 @@ from telegram_api.handlers import (
     get_plot_spread_bb,
     get_sma_spread_moex,
     get_spread_moex,
-    get_alerts,
+    set_alerts,
     admin_panel,
 )
 
 
 @logger.catch()
-async def set_bot_commands():
+async def set_bot_commands(count: int = 0):
+    if count == 4:
+        return
     try:
         scope = BotCommandScope()
         scope.type = "all_private_chats"
         await bot.delete_my_commands(scope)
-        bot_commands = [BotCommand(command=cmd, description=desc) for cmd, desc in PARAMETERS['commands'].items()]
+        commands_dict = await db.get_bot_commands()
+        bot_commands = [BotCommand(command=cmd, description=desc) for cmd, desc in commands_dict.items()]
         await bot.set_my_commands(bot_commands)
     except exceptions.NetworkError as error:
-        logger.error(f"Сетевая ошибка: {error} --- {error.with_traceback()}")
+        count += 1
+        logger.error(f"Сетевая ошибка: {error}")
         await asyncio.sleep(5)
-        await set_bot_commands()
+        await set_bot_commands(count)
+    except Exception as error:
+        logger.error(f"Ошибка при установке команд бота: {error}")
 
 
 @logger.catch()
@@ -41,7 +46,7 @@ async def main(_):
     count = 5
     while count > 0:
         try:
-            await BotDatabase().create_file_database()
+            await db.create_tables()
             await set_bot_commands()
             await commands.register_handlers_commands(dp)
             await get_atr_spread_moex.register_handlers_command_atr(dp)
@@ -51,7 +56,7 @@ async def main(_):
             await get_plot_spread_bb.register_handlers_command_bollinger_bands(dp)
             await get_sma_spread_moex.register_handlers_command_sma(dp)
             await get_spread_moex.register_handlers_command_spread(dp)
-            await get_alerts.register_handlers_alerts(dp)
+            await set_alerts.register_handlers_alerts(dp)
             await admin_panel.register_handlers_admin_panel_commands(dp)
             logger.success('Бот запущен')
             break

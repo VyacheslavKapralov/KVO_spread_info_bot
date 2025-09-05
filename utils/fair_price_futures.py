@@ -1,14 +1,19 @@
 import math
 from datetime import datetime
 
-
 from loguru import logger
 
+from moex_api.get_data_moex import get_key_rate_soup, get_exchange_rate_soup, get_ticker_data
+from utils.calculate_spread import get_price_for_figi, calculate_spread, calculate_fair_spread
 
-from moex_api.get_data_moex import get_ticker_data, get_last_price_moex, get_key_rate_soup, get_fixing
+CURRENCY_ABBREVIATIONS = {
+    'Si': 'USD',
+    'CNY': 'CNY',
+    'Eu': 'EUR',
+}
 
 
-async def calculate_futures_price(spot_price: float, interest_rate: float, expiration_date: str) -> float:
+async def calculate_futures_price(spot_price: float, interest_rate: float, expiration_date: str) -> float or None:
     current_date = datetime.now()
     expiration_date = datetime.strptime(expiration_date, "%Y-%m-%d")
     days_to_expiration = (expiration_date - current_date).days
@@ -16,37 +21,38 @@ async def calculate_futures_price(spot_price: float, interest_rate: float, expir
     return futures_price
 
 
-async def get_fair_price_futures(ticker: str) -> float or None:
-    ticker_data = await get_ticker_data(ticker)
-    spot_price = None
+async def get_fair_price_futures_currency(ticker_data: dict) -> float or None:
     if not ticker_data:
-        return
+        return None
+    spot_price, expiration_date = None, None
     interest_rate = await get_key_rate_soup()
-    if not interest_rate:
-        return
-    if ticker.startswith('CR'):
-        spot_price = await get_fixing('CNYFIXME')
-    elif ticker.startswith('Si'):
-        spot_price = await get_fixing('USDFIXME')
-    elif ticker.startswith('Eu'):
-        spot_price = await get_fixing('EURFIXME')
-    elif ticker.startswith('ED'):
-        spot_price = await get_fixing('EURUSDFIXME')
-    elif ticker.startswith('GD'):
-        spot_price = await get_fixing('GOLDFIXME')
-    elif ticker.startswith('SP'):
-        spot_price = await get_last_price_moex('SBERP')
-    elif ticker.startswith('SR'):
-        spot_price = await get_last_price_moex('SBER')
-    elif ticker.startswith('GZ'):
-        spot_price = await get_last_price_moex('GAZP')
-    elif ticker.startswith('MX'):
-        spot_price = await get_last_price_moex('IMOEX')
-    if not spot_price:
-        return
-    for elem in ticker_data['description']['data']:
+    for elem in ticker_data["description"]["data"]:
+        if spot_price and expiration_date:
+            break
         if elem[0] == 'LSTDELDATE':
-            return round(await calculate_futures_price(spot_price, interest_rate, elem[2]), 2)
+            expiration_date = elem[2]
+        elif elem[0] == 'ASSETCODE' and len(elem[2]) < 4:
+            spot_price = await get_exchange_rate_soup(CURRENCY_ABBREVIATIONS.get(elem[2]))
+        elif elem[0] == 'ASSETCODE' and len(elem[2]) > 3:
+            break
+    if spot_price and expiration_date and interest_rate:
+        return round(await calculate_futures_price(spot_price, interest_rate, expiration_date), 2)
+    return None
+
+
+async def get_fair_spread_futures_currency(tickers: list, spread_type: str) -> float:
+    prices = []
+    for ticker in tickers:
+        ticker_data = await get_ticker_data(ticker)
+        for elem in ticker_data["description"]["data"]:
+            if elem[0] == 'TYPE' and elem[2] == 'futures':
+                fair_price = await get_fair_price_futures_currency(ticker_data)
+                if fair_price:
+                    prices.append(fair_price)
+                else:
+                    last_price = await get_price_for_figi(ticker)
+                    prices.append(last_price)
+    return await calculate_fair_spread(prices, spread_type)
 
 
 if __name__ == '__main__':

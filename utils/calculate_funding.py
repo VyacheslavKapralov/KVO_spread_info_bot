@@ -21,6 +21,7 @@ async def get_funding_moex(ticker: str):
         return funding_rate_now
     else:
         logger.info(f"Ошибка: {response.status_code} - {response.text}")
+        return None
 
 
 @logger.catch()
@@ -39,6 +40,7 @@ async def get_lot_volume(ticker: str):
         return lot_volume
     else:
         logger.info(f"Ошибка в get_lot_volume: {response.status_code} - {response.text}")
+        return None
 
 
 if __name__ == "__main__":

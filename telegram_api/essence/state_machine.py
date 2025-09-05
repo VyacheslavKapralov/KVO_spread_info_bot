@@ -6,6 +6,7 @@ class MainInfo(StatesGroup):
     pare_ticker = State()
     type_info = State()
     spread_type = State()
+    fair_spread_type = State()
     spread_type_ema = State()
     spread_type_sma = State()
     spread_type_atr = State()
@@ -20,6 +21,7 @@ class Alert(StatesGroup):
     type_spread = State()
     min_line = State()
     max_line = State()
+    deviation_fair_spread = State()
 
 
 class AdminPanel(StatesGroup):

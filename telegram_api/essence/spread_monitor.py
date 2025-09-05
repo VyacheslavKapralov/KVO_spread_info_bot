@@ -64,7 +64,7 @@ class SpreadMonitor:
 
 
 def generate_monitor_id(tickers: list, strategy: str) -> str:
-    tickers_str = "_".join(sorted(tickers))
+    tickers_str = "_".join(tickers)
     timestamp = int(datetime.now().timestamp())
     return f"{strategy}_{tickers_str}_{timestamp}"
 

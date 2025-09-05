@@ -3,7 +3,6 @@ import json
 import queue
 from datetime import datetime
 
-import pandas as pd
 from websockets import connect, ConnectionClosed, ConnectionClosedOK
 from loguru import logger
 
@@ -23,20 +22,6 @@ class AlorWebsocket:
         self._running = False
         self._reconnect_tasks = {}
         self._listen_tasks = {}
-
-    async def get_data_for_gui(self):
-        with open('test_data_frame/data_frame.json', 'r', encoding='utf-8') as file:
-            data = json.load(file)
-        for symbol, df_data in data.items():
-            data_frame = pd.DataFrame.from_records(df_data['data'])
-            data_frame = data_frame.drop(columns=['Last_volume', 'Interval'], errors='ignore')
-            data_frame['Time'] = pd.to_datetime(data_frame['Time'], format='%Y-%m-%d %H:%M:%S.%f')
-            data_frame[['Price', 'Volume', 'Timestamp']] = data_frame[['Price', 'Volume', 'Timestamp']].apply(pd.to_numeric)
-            for _, row in data_frame.iterrows():
-                self.data_handler.trades_queue.put_nowait({
-                    'symbol': symbol,
-                    'trade': row.tolist()
-                })
 
     async def start(self):
         if self._running:
@@ -209,8 +194,6 @@ class AlorWebsocket:
                 }
                 try:
                     self.data_handler.trades_queue.put_nowait(trades_data)
-                    # logger.info(f"\nДобавлен в очередь \n{trades_data}. "
-                    #             f"Длина очереди {self.data_handler.trades_queue.qsize()}")
                 except queue.Full:
                     self.data_handler.trades_queue.put_nowait(trades_data)
                     logger.warning(f"Очередь сделок переполнена")
