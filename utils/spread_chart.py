@@ -11,9 +11,16 @@ from loguru import logger
 
 
 async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
-    ap_lower = mpf.make_addplot(data_frame["BBL"], panel=0, color='g', title='Lower Band', secondary_y=False)
-    ap_middle = mpf.make_addplot(data_frame["BBM"], panel=0, color='y', title='Middle Band', secondary_y=False)
-    ap_upper = mpf.make_addplot(data_frame["BBU"], panel=0, color='r', title='Upper Band', secondary_y=False)
+    def find_column_by_prefix(prefix: str):
+        matching_cols = [col for col in data_frame.columns if col.startswith(prefix)]
+        return matching_cols[0] if matching_cols else None
+
+    ap_lower = mpf.make_addplot(data_frame[find_column_by_prefix("BBL")], panel=0, color='g', title='Lower Band',
+                                secondary_y=False)
+    ap_middle = mpf.make_addplot(data_frame[find_column_by_prefix("BBM")], panel=0, color='y', title='Middle Band',
+                                 secondary_y=False)
+    ap_upper = mpf.make_addplot(data_frame[find_column_by_prefix("BBU")], panel=0, color='r', title='Upper Band',
+                                secondary_y=False)
     fig, axlist = mpf.plot(
         data_frame,
         type='line',
@@ -38,6 +45,9 @@ async def add_plot_spread(data_frame: pd.DataFrame, ticker: str):
     buf.seek(0)
     plt.close(fig)
     return buf
+
+
+
 
 
 if __name__ == '__main__':
