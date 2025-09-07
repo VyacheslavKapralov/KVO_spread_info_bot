@@ -183,7 +183,6 @@ async def deleting_user(callback: types.CallbackQuery, state: FSMContext):
 async def get_parameters_bot(callback: types.CallbackQuery):
     await AdminPanel.view_settings.set()
     settings = await settings_manager.get_all_settings()
-    logger.info(settings)
     response_parts = [
         "<b>TECHNICAL SETTINGS</b>:",
         *[f"  {key}: {settings.get(key, 'N/A')}" for key in TECHNICAL_SETTINGS],
