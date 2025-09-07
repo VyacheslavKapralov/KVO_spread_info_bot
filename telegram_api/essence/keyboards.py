@@ -130,7 +130,7 @@ def settings_menu():
 def settings_edit_menu():
     keyboard = InlineKeyboardMarkup(row_width=2)
     categories = [
-        'expiration_months', 'time_frame_minutes', 'bollinger_period',
+        'expiration', 'time_frame_minutes', 'bollinger_period',
         'bollinger_deviation', 'sma_period', 'ema_period', 'atr_period',
         'signals', 'pairs', 'commands'
     ]

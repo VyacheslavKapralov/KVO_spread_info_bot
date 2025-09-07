@@ -94,7 +94,7 @@ async def calculate_bollinger_bands_ema(data_frame: pd.DataFrame, deviation: int
 async def add_dataframe_spread_bb(candle_interval: str, coefficients_list: list, deviation: int, period: int,
                                   tickers_list: list, spread_type: str) -> pd.DataFrame:
     data_frame = await create_dataframe_spread(candle_interval, coefficients_list, tickers_list, spread_type)
-    data_frame = await calculate_bollinger_bands_ta(data_frame, deviation, period)
+    data_frame = await calculate_bollinger_bands_ema(data_frame, deviation, period)
     data_frame.dropna(inplace=True)
     start_time = data_frame['Date'].iloc[-1] - pd.Timedelta(days=3)
     data_frame = data_frame.loc[data_frame['Date'] >= start_time]

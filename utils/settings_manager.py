@@ -13,7 +13,7 @@ class SettingsManager:
     async def get_all_settings(self) -> Dict[str, Any]:
         settings = await self.db.get_all_settings()
         result = {
-            'expiration_months': settings.get('expiration'),
+            'expiration': settings.get('expiration'),
             'time_frame_minutes': settings.get('technical').get('time_frame_minutes'),
             'bollinger_period': settings.get('technical').get('bollinger_period'),
             'bollinger_deviation': settings.get('technical').get('bollinger_deviation'),
