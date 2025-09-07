@@ -46,7 +46,7 @@ class BotDatabase:
     async def initialize_default_settings(self):
         default_technical = {
             'time_frame_minutes': ('5m', 'str'),
-            'bollinger_period': (100, 'int'),
+            'bollinger_period': (200, 'int'),
             'bollinger_deviation': (2.0, 'float'),
             'sma_period': (200, 'int'),
             'ema_period': (200, 'int'),
@@ -72,7 +72,7 @@ class BotDatabase:
             for key, (value, value_type) in default_technical.items():
                 await self.save_setting('technical', key, value, value_type)
             for key, value in default_expiration.items():
-                await self.save_setting('expiration_months', key, value, 'str')
+                await self.save_setting('expiration', key, value, 'str')
             for cmd, desc in default_commands.items():
                 await self.save_setting('commands', cmd, desc, 'str')
             await self.initialize_default_pairs()
@@ -325,8 +325,7 @@ class BotDatabase:
             if not table_exists:
                 cursor.execute(
                     f'''CREATE TABLE IF NOT EXISTS {table_name}
-                        (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                         date_time TEXT NOT NULL,
+                        (date_time TEXT NOT NULL,
                          user_name TEXT NOT NULL,
                          user_id TEXT NOT NULL,
                          info TEXT,

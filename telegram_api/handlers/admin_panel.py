@@ -105,7 +105,7 @@ async def get_all_ids_db(callback: types.CallbackQuery):
         for user in incoming_users:
             if user in allowed_users:
                 continue
-            history_users = await db.db_read('allowed_ids', user)
+            history_users = await db.db_read('incoming_ids', user)
             for elem in history_users:
                 await callback.message.answer(BotAnswers.user_database(elem[0], elem[1], elem[2]))
     else:
@@ -188,7 +188,7 @@ async def get_parameters_bot(callback: types.CallbackQuery):
         *[f"  {key}: {settings.get(key, 'N/A')}" for key in TECHNICAL_SETTINGS],
         "",
         "<b>EXPIRATION MONTHS</b>:",
-        *[f"  {key}: {value}" for key, value in settings.get('expiration_months', {}).items()],
+        *[f"  {key}: {value}" for key, value in settings.get('expiration', {}).items()],
         "",
         "<b>COMMANDS</b>:",
         *[f"  {key}: {value}" for key, value in settings.get('commands', {}).items()],
@@ -277,7 +277,7 @@ async def _handle_special_commands(message: types.Message, category: str, param:
     elif category == 'commands' and param.startswith(('add_command', 'del_command', 'edit_command')):
         await handle_commands_commands_db(message, param, value_str)
         return True
-    elif category == 'expiration_months' and param == 'delete':
+    elif category == 'expiration' and param == 'delete':
         await _handle_expiration_delete(message, value_str)
         return True
     return False
@@ -309,7 +309,7 @@ async def _process_setting(category: str, value_str: str):
             return f"technical.{category}", value
         except ValueError:
             raise ValueError("Должно быть целым числом")
-    elif category == 'expiration_months':
+    elif category == 'expiration':
         month_symbol = value_str.upper()
         if month_symbol not in EXPIRATION_MONTHS:
             expiration_list = await _format_expiration_months()
