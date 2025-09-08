@@ -29,7 +29,7 @@ async def menu_instruments():
         for symbols, coefficients in pair_list:
             text_button = ' '.join(symbols)
             coeffs_str = str(coefficients).replace(' ', '')
-            callback_data = f"{text_button.replace(' ', '_')};{coeffs_str}"
+            callback_data = f"{text_button.replace(' ', '_')};{coeffs_str};{type_tool}"
             button = InlineKeyboardButton(text=text_button, callback_data=callback_data)
             row.append(button)
             if len(row) == 2:
@@ -80,11 +80,18 @@ def menu_direction_position():
     )
 
 
-def menu_type_alert():
+def menu_type_alert_futures():
     return InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(text='Пересечение горизонтальной линии', callback_data='line_alert'),
         InlineKeyboardButton(text='Пересечение линий Боллинджера', callback_data='bollinger_bands_alert'),
         InlineKeyboardButton(text='Отклонение от справедливого спреда', callback_data='deviation_fair_spread'),
+    )
+
+
+def menu_type_alert_stocks():
+    return InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(text='Пересечение горизонтальной линии', callback_data='line_alert'),
+        InlineKeyboardButton(text='Пересечение линий Боллинджера', callback_data='bollinger_bands_alert'),
     )
 
 

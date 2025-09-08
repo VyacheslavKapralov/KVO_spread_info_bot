@@ -7,8 +7,8 @@ from loguru import logger
 
 from moex_api.search_current_ticker import get_ticker
 from telegram_api.essence.answers_bot import BotAnswers
-from telegram_api.essence.keyboards import (menu_type_alert, menu_spread_type, menu_monitor_control, main_menu,
-                                            back_main_menu, confirm_menu)
+from telegram_api.essence.keyboards import (menu_type_alert_futures, menu_spread_type, menu_monitor_control, main_menu,
+                                            back_main_menu, confirm_menu, menu_type_alert_stocks)
 from telegram_api.essence.spread_monitor import SpreadMonitor, generate_monitor_id
 from telegram_api.essence.state_machine import Alert, MonitoringControl
 from telegram_api.handlers.spread_rules import signal_line, signal_bb, signal_deviation_fair_spread
@@ -22,15 +22,21 @@ async def set_tickers_alert(callback: types.CallbackQuery, state: FSMContext):
     await Alert.type_alert.set()
     async with state.proxy() as data:
         data['tickers'] = []
-        data['coefficients'] = callback.data.split(';')[1].strip('()').replace(' ', '').split(',')
         tickers = callback.data.split(';')[0]
+        coefficients = callback.data.split(';')[1]
+        type_tool = callback.data.split(';')[2]
+        data['coefficients'] = coefficients.strip('()').replace(' ', '').split(',')
         for elem in tickers.split('_'):
             ticker = await get_ticker(elem)
             if not ticker:
                 raise
             data['tickers'].append(ticker)
+        if type_tool.startswith('Акции'):
+            keyboard_markup = menu_type_alert_stocks()
+        else:
+            keyboard_markup = menu_type_alert_futures()
     await callback.message.answer(f"Спред для {' '.join(data['tickers'])}")
-    await callback.message.answer(BotAnswers.what_alert_set(' '.join(data['tickers'])), reply_markup=menu_type_alert())
+    await callback.message.answer(BotAnswers.what_alert_set(' '.join(data['tickers'])), reply_markup=keyboard_markup)
 
 
 async def set_type_alert(callback: types.CallbackQuery, state: FSMContext):
