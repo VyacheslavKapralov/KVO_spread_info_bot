@@ -17,11 +17,9 @@ async def get_fair_price(callback: types.CallbackQuery, state: FSMContext):
             ticker_data = await get_ticker_data(ticker)
             for elem in ticker_data["description"]["data"]:
                 if elem[0] == 'TYPE' and elem[2] == 'futures':
-                    data[f"fair_price_{ticker}"] = await get_fair_price_futures_currency(ticker_data)
-                    if data[f"fair_price_{ticker}"]:
-                        await callback.message.answer(
-                            BotAnswers().result_fair_price_futures(data[f"fair_price_{ticker}"], ticker)
-                        )
+                    fair_price = await get_fair_price_futures_currency(ticker_data)
+                    if fair_price:
+                        await callback.message.answer(BotAnswers().result_fair_price_futures(fair_price, ticker))
     await callback.message.answer(BotAnswers().what_needs_sent(' '.join(data['tickers'])),
                                   reply_markup=menu_expiring_futures())
 

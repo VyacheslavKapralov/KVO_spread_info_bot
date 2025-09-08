@@ -4,13 +4,8 @@ from datetime import datetime
 from loguru import logger
 
 from moex_api.get_data_moex import get_key_rate_soup, get_exchange_rate_soup, get_ticker_data
-from utils.calculate_spread import get_price_for_figi, calculate_spread, calculate_fair_spread
-
-CURRENCY_ABBREVIATIONS = {
-    'Si': 'USD',
-    'CNY': 'CNY',
-    'Eu': 'EUR',
-}
+from settings import CURRENCY_ABBREVIATIONS
+from utils.calculate_spread import get_price_for_figi, calculate_fair_spread
 
 
 async def calculate_futures_price(spot_price: float, interest_rate: float, expiration_date: str) -> float or None:

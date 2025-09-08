@@ -22,6 +22,9 @@ class Alert(StatesGroup):
     min_line = State()
     max_line = State()
     deviation_fair_spread = State()
+    update_settings = State()
+    timeframe = State()
+    period = State()
 
 
 class AdminPanel(StatesGroup):

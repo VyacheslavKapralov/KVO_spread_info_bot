@@ -6,50 +6,13 @@ from aiogram.dispatcher import FSMContext
 from loguru import logger
 
 from database.database_bot import db
+from settings import TECHNICAL_SETTINGS, EXPIRATION_MONTHS, VALID_TIMEFRAMES
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.keyboards import (main_menu, admin_menu, access_bot_menu, confirm_menu, settings_menu,
                                             settings_edit_menu)
 from telegram_api.essence.state_machine import AdminPanel
 from utils.decorators import check_int
 from utils.settings_manager import settings_manager
-
-EXPIRATION_MONTHS = {
-    'F': '01',
-    'G': '02',
-    'H': '03',
-    'J': '04',
-    'K': '05',
-    'M': '06',
-    'N': '07',
-    'Q': '08',
-    'U': '09',
-    'V': '10',
-    'X': '11',
-    'Z': '12'
-}
-VALID_TIMEFRAMES = [
-    '1m',
-    '2m',
-    '3m',
-    '5m',
-    '10m',
-    '15m',
-    '30m',
-    '1h',
-    '2h',
-    '4h',
-    '1d',
-    '1w',
-    '1M']
-TECHNICAL_SETTINGS = [
-    'time_frame_minutes',
-    'bollinger_period',
-    'bollinger_deviation',
-    'sma_period',
-    'ema_period',
-    'atr_period',
-    'signals'
-]
 
 
 async def admin_panel(message: types.Message):

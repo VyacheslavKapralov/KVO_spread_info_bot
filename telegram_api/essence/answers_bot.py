@@ -71,7 +71,7 @@ class BotAnswers:
 
     @staticmethod
     def position() -> str:
-        return 'Напишите какой размер позиции в лотах:'
+        return 'Введите какой размер позиции в лотах:'
 
     @staticmethod
     def set_direction_position(direction: str, tickers: list):
@@ -286,6 +286,22 @@ class BotAnswers:
     @staticmethod
     def setting_update_error() -> str:
         return "Ошибка при обновлении настроек"
+
+    @staticmethod
+    def setting_update() -> str:
+        return "Желаете установить индивидуальные настройки для оповещения?"
+
+    @staticmethod
+    def set_time_frame() -> str:
+        return "Введите желаемый тайм фрейм для индикатора."
+
+    @staticmethod
+    def check_timeframe(timeframes: list) -> str:
+        return f"Неверный тайм фрейм.\nДопустимые тайм фреймы:\n{timeframes}"
+
+    @staticmethod
+    def set_period() -> str:
+        return "Введите желаемый период для индикатора. Допускается только целое число."
 
 
 if __name__ == '__main__':

@@ -51,9 +51,15 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
 
 
 async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, spread_monitor) -> None:
-    time_frame = await db.get_setting('technical', 'time_frame_minutes')
+    if data.get('time_frame'):
+        time_frame = data['time_frame']
+    else:
+        time_frame = await db.get_setting('technical', 'time_frame_minutes')
     bollinger_deviation = await db.get_setting('technical', 'bollinger_deviation')
-    bollinger_period = await db.get_setting('technical', 'bollinger_period')
+    if data.get('period'):
+        bollinger_period = data['period']
+    else:
+        bollinger_period = await db.get_setting('technical', 'bollinger_period')
     tickers = data['tickers']
     coefficients = data['coefficients']
     spread_type = data['spread_type']
