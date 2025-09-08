@@ -122,6 +122,7 @@ async def command_history(message: types.Message):
         return None
     history_line = await BotDatabase().db_read('bot_lines_signals', message.from_user.username)
     history_bollinger = await BotDatabase().db_read('bot_bb_signals', message.from_user.username)
+    history_fair_spread = await BotDatabase().db_read('bot_deviation_fair_spread_signals', message.from_user.username)
     if not history_line and not history_bollinger:
         return await message.answer(BotAnswers.not_info_database())
     if history_line:
@@ -129,6 +130,9 @@ async def command_history(message: types.Message):
             await message.answer(BotAnswers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
     if history_bollinger:
         for elem in history_bollinger[-10:]:
+            await message.answer(BotAnswers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
+    if history_fair_spread:
+        for elem in history_fair_spread[-10:]:
             await message.answer(BotAnswers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
     return None
 
