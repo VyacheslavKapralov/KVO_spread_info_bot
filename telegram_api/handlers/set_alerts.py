@@ -35,17 +35,19 @@ async def set_tickers_alert(callback: types.CallbackQuery, state: FSMContext):
 
 async def set_type_alert(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
-    await Alert.update_settings.set()
+    await Alert.type_spread.set()
     async with state.proxy() as data:
         data['type_alert'] = callback.data
     if callback.data == 'line_alert':
-        text = BotAnswers.line_alert()
+        await callback.message.answer(BotAnswers.line_alert())
+        await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
     elif callback.data == 'bollinger_bands_alert':
-        text = BotAnswers.bb_alert()
+        await Alert.update_settings.set()
+        await callback.message.answer(BotAnswers.bb_alert())
+        await callback.message.answer(BotAnswers.setting_update(), reply_markup=confirm_menu())
     elif callback.data == 'deviation_fair_spread':
-        text = BotAnswers.fair_price_alert()
-    await callback.message.answer(text)
-    await callback.message.answer(BotAnswers.setting_update(), reply_markup=confirm_menu())
+        await callback.message.answer(BotAnswers.fair_price_alert())
+        await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
 
 
 async def settings_correction(callback: types.CallbackQuery):
