@@ -5,7 +5,7 @@ import pandas as pd
 from aiogram import types
 from loguru import logger
 
-from database.database_bot import BotDatabase, db
+from database.database_bot import db
 from telegram_api.essence.answers_bot import BotAnswers
 from telegram_api.essence.keyboards import back_main_menu
 from tinkoff_investments.exceptions import FigiRetrievalError, DataRetrievalError
@@ -88,6 +88,7 @@ async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, 
                 first_condition = False
                 plot = await add_plot_spread(data_frame, f"{' '.join(tickers)}")
                 await send_signal_bb(callback, data_frame, tickers, spread, spread_type, plot)
+                await asyncio.sleep(300)
         except (FigiRetrievalError, DataRetrievalError) as error:
             logger.error(f"Error: {error}. {error.message}")
             count -= 1
@@ -120,7 +121,7 @@ async def signal_deviation_fair_spread(data: dict, message: types.Message, monit
                 in_alert_zone = True
             elif in_alert_zone and abs(fair_spread - spread) < deviation_fair_spread:
                 in_alert_zone = False
-            await asyncio.sleep(30)
+            await asyncio.sleep(60)
         except (FigiRetrievalError, DataRetrievalError) as error:
             logger.error(f"Error: {error}. {error.message}")
             count -= 1
@@ -140,7 +141,7 @@ async def send_signal_line(message: types.Message, tickers: list, spread: float,
     table_name = 'bot_lines_signals'
     await message.answer(BotAnswers.lines_signal_answer(tickers, spread, spread_type, min_line, max_line),
                          reply_markup=back_main_menu())
-    await BotDatabase().db_write(
+    await db.db_write(
         date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         table_name=table_name,
         user_name=message.from_user.username,
@@ -162,9 +163,10 @@ async def send_signal_bb(callback: types.CallbackQuery, data_frame: pd.DataFrame
     table_name = 'bot_bb_signals'
     await callback.message.answer_photo(
         photo=plot,
-        caption=f"{BotAnswers.bollinger_bands_signal_answer(tickers, spread, spread_type)}", reply_markup=back_main_menu()
+        caption=f"{BotAnswers.bollinger_bands_signal_answer(tickers, spread, spread_type)}",
+        reply_markup=back_main_menu()
     )
-    await BotDatabase().db_write(
+    await db.db_write(
         date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         table_name=table_name,
         user_name=callback.from_user.username,
@@ -185,7 +187,7 @@ async def send_signal_deviation_fair_spread(message: types.Message, tickers: lis
     table_name = 'bot_deviation_fair_spread_signals'
     await message.answer(BotAnswers.deviation_fair_spread_signal_answer(tickers, spread, spread_type, fair_spread),
                          reply_markup=back_main_menu())
-    await BotDatabase().db_write(
+    await db.db_write(
         date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         table_name=table_name,
         user_name=message.from_user.username,
