@@ -1,9 +1,9 @@
+import json
 import os
 import sqlite3
-import json
 from typing import Dict, Any, Optional, List, Tuple
+
 from loguru import logger
-from pathlib import Path
 
 
 class BotDatabase:
@@ -29,6 +29,30 @@ class BotDatabase:
                     symbols TEXT,
                     coefficients TEXT,
                     PRIMARY KEY (group_name, pair_index)
+                )
+            """,
+            'administrators': """
+                CREATE TABLE IF NOT EXISTS administrators (
+                    date_time TEXT,
+                    user_name TEXT,
+                    user_id INTEGER,
+                    info TEXT
+                )
+            """,
+            'allowed_ids': """
+                CREATE TABLE IF NOT EXISTS allowed_ids (
+                    date_time TEXT,
+                    user_name TEXT,
+                    user_id INTEGER,
+                    info TEXT
+                )
+            """,
+            'incoming_ids': """
+                CREATE TABLE IF NOT EXISTS incoming_ids (
+                    date_time TEXT,
+                    user_name TEXT,
+                    user_id INTEGER,
+                    info TEXT
                 )
             """,
         }
@@ -450,7 +474,6 @@ class BotDatabase:
 
 
 db = BotDatabase()
-
 
 if __name__ == '__main__':
     logger.info('Running database.py from module database')
