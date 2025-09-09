@@ -149,9 +149,12 @@ def settings_edit_menu():
 
 
 def correlation_menu():
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add("1 месяц", "3 месяца", "6 месяцев", "1 год")
-    return keyboard
+    return InlineKeyboardMarkup(row_width=2).add(
+        InlineKeyboardButton(text="1 месяц", callback_data='1_month'),
+        InlineKeyboardButton(text="3 месяца", callback_data='3_month'),
+        InlineKeyboardButton(text="6 месяцев", callback_data='6_month'),
+        InlineKeyboardButton(text="1 год", callback_data='1_year'),
+    )
 
 
 if __name__ == '__main__':

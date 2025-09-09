@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from loguru import logger
 from bs4 import BeautifulSoup
 
+from settings import MOEX_COLUMNS
+
 
 # "https://www.cbr.ru/scripts/XML_daily.asp" или "https://www.cbr-xml-daily.ru/latest.js"- курс валют
 
@@ -81,28 +83,34 @@ async def get_stock_data(tickers: list, days: int = 90) -> pd.DataFrame or None:
             }
             response = requests.get(url=url, params=params)
             response.raise_for_status()
-            data = await response.json()
+            data = response.json()
             history_data = data['history']['data']
             if history_data:
-                df = pd.DataFrame(history_data)
+                df = pd.DataFrame(history_data, columns=MOEX_COLUMNS)
                 df['TRADEDATE'] = pd.to_datetime(df['TRADEDATE'])
                 df.set_index('TRADEDATE', inplace=True)
-                df = df[['CLOSE']].rename(columns={'CLOSE': ticker})
-                data_dict[ticker] = df
-        except ConnectionResetError as error:
-            logger.error(f"Error - {error}: {error.with_traceback()}")
-        except TimeoutError as error:
-            logger.error(f"Error - {error}: {error.with_traceback()}")
-        except requests.HTTPError as error:
-            logger.error(
-                f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - "
-                f"Response: {error.response.text}"
-            )
+                if 'CLOSE' in df.columns:
+                    df = df[['CLOSE']].rename(columns={'CLOSE': ticker})
+                    data_dict[ticker] = df
+                else:
+                    logger.warning(f"Колонка CLOSE не найдена для тикера {ticker}")
+            await asyncio.sleep(0.1)
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Ошибка запроса для {ticker}: {e}")
+        except Exception as e:
+            logger.error(f"Общая ошибка для {ticker}: {e}")
     if not data_dict:
         return None
-    combined_df = pd.concat(data_dict.values(), axis=1)
-    combined_df = combined_df.ffill().dropna()
-    return combined_df
+    try:
+        combined_df = pd.concat(data_dict.values(), axis=1)
+        combined_df = combined_df.ffill().dropna()
+        if len(combined_df) < 2:
+            logger.warning("Недостаточно данных для расчета корреляции")
+            return None
+        return combined_df
+    except Exception as e:
+        logger.error(f"Ошибка при объединении данных: {e}")
+        return None
 
 
 @logger.catch()
