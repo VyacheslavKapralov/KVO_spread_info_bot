@@ -28,22 +28,16 @@ class BotAnswers:
         return f"{indicator_type}: {' / '.join(tickers)} = {number}%"
 
     @staticmethod
-    def bollinger_bands_signal_answer(tickers: list, spread: float, spread_type: str) -> str:
-        if spread_type == 'money':
-            return f"Возврат спреда в канал линий Боллинджера.\nСпред: {' - '.join(tickers)} = {spread} руб."
-        return f"Возврат спреда в канал линий Боллинджера.\nСпред: {' / '.join(tickers)} = {spread}%"
+    def bollinger_bands_signal_answer(text: str) -> str:
+        return text
 
     @staticmethod
-    def lines_signal_answer(tickers: list, spread: float, spread_type: str, min_line: float, max_line: float) -> str:
-        if spread_type == 'money':
-            return f"Спред: {' - '.join(tickers)} = {spread} руб. пересек одну из линий: {max_line} --- {min_line}"
-        return f"Спред: {' / '.join(tickers)} = {spread}% пересек одну из линий: {max_line} --- {min_line}"
+    def lines_signal_answer(text: str) -> str:
+        return text
 
     @staticmethod
-    def deviation_fair_spread_signal_answer(tickers: list, spread: float, spread_type: str, fair_spread: float) -> str:
-        if spread_type == 'money':
-            return f"Спред: {' - '.join(tickers)} = {spread} руб. отклонился от справедливого спреда = {fair_spread}."
-        return f"Спред: {' / '.join(tickers)} = {spread}% отклонился от справедливого спреда = {fair_spread}."
+    def deviation_fair_spread_signal_answer(text: str) -> str:
+        return text
 
     @staticmethod
     def result_calculation_funding(number: float, ticker: str) -> str:
