@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List, Tuple
 
 from loguru import logger
@@ -54,6 +55,17 @@ class BotDatabase:
                     user_id INTEGER,
                     info TEXT
                 )
+            """,
+            'correlations': """
+            CREATE TABLE IF NOT EXISTS correlations (
+                calculation_date TEXT,
+                period_days INTEGER,
+                ticker1 TEXT,
+                ticker2 TEXT,
+                correlation REAL,
+                correlation_type TEXT,
+                PRIMARY KEY (calculation_date, period_days, ticker1, ticker2)
+            )
             """,
         }
         connect = await self.connect_database()
@@ -471,6 +483,126 @@ class BotDatabase:
         except sqlite3.Error as error:
             logger.error(f"Error getting formatted pairs: {error}")
             return {}
+
+    async def save_correlations(self, period_days: int, correlations: List[Dict[str, Any]]) -> bool:
+        try:
+            calculation_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            connect = await self.connect_database()
+            cursor = connect.cursor()
+            cursor.execute(
+                "DELETE FROM correlations WHERE period_days = ?",
+                (period_days,)
+            )
+            for correlation in correlations:
+                cursor.execute(
+                    """INSERT INTO correlations 
+                    (calculation_date, period_days, ticker1, ticker2, correlation, correlation_type) 
+                    VALUES (?, ?, ?, ?, ?, ?)""",
+                    (
+                        calculation_date,
+                        period_days,
+                        correlation['ticker1'],
+                        correlation['ticker2'],
+                        correlation['correlation'],
+                        correlation['type']
+                    )
+                )
+            connect.commit()
+            connect.close()
+            return True
+        except sqlite3.Error as error:
+            logger.error(f"Error saving correlations: {error}")
+            return False
+
+    async def get_correlations(self, period_days: int = None, min_correlation: float = 0.75,
+                               max_results: int = 100) -> List[Dict[str, Any]]:
+        try:
+            connect = await self.connect_database()
+            cursor = connect.cursor()
+            if period_days:
+                cursor.execute(
+                    """SELECT calculation_date, period_days, ticker1, ticker2, correlation, correlation_type 
+                    FROM correlations 
+                    WHERE period_days = ? AND ABS(correlation) >= ?
+                    ORDER BY ABS(correlation) DESC 
+                    LIMIT ?""",
+                    (period_days, min_correlation, max_results)
+                )
+            else:
+                cursor.execute(
+                    """SELECT calculation_date, period_days, ticker1, ticker2, correlation, correlation_type 
+                    FROM correlations 
+                    WHERE ABS(correlation) >= ?
+                    ORDER BY period_days DESC, ABS(correlation) DESC 
+                    LIMIT ?""",
+                    (min_correlation, max_results)
+                )
+            results = []
+            for row in cursor.fetchall():
+                results.append({
+                    'calculation_date': row[0],
+                    'period_days': row[1],
+                    'ticker1': row[2],
+                    'ticker2': row[3],
+                    'correlation': row[4],
+                    'type': row[5]
+                })
+            connect.close()
+            return results
+        except sqlite3.Error as error:
+            logger.error(f"Error getting correlations: {error}")
+            return []
+
+    async def get_latest_correlations(self, period_days: int, min_correlation: float = 0.75,
+                                      max_results: int = 100) -> List[Dict[str, Any]]:
+        try:
+            connect = await self.connect_database()
+            cursor = connect.cursor()
+            cursor.execute(
+                """SELECT c.calculation_date, c.ticker1, c.ticker2, c.correlation, c.correlation_type 
+                FROM correlations c
+                WHERE c.period_days = ? 
+                AND c.calculation_date = (
+                    SELECT MAX(calculation_date) 
+                    FROM correlations 
+                    WHERE period_days = ?
+                )
+                AND ABS(c.correlation) >= ?
+                ORDER BY ABS(c.correlation) DESC
+                LIMIT ?""",
+                (period_days, period_days, min_correlation, max_results)
+            )
+            results = []
+            for row in cursor.fetchall():
+                results.append({
+                    'calculation_date': row[0],
+                    'ticker1': row[1],
+                    'ticker2': row[2],
+                    'correlation': row[3],
+                    'type': row[4]
+                })
+            connect.close()
+            return results
+        except sqlite3.Error as error:
+            logger.error(f"Error getting latest correlations: {error}")
+            return []
+
+    async def delete_old_correlations(self, days_to_keep: int = 7) -> bool:
+        try:
+            cutoff_date = (datetime.now() - timedelta(days=days_to_keep)).strftime('%Y-%m-%d %H:%M:%S')
+            connect = await self.connect_database()
+            cursor = connect.cursor()
+            cursor.execute(
+                "DELETE FROM correlations WHERE calculation_date < ?",
+                (cutoff_date,)
+            )
+            deleted_count = cursor.rowcount
+            connect.commit()
+            connect.close()
+            return True
+        except sqlite3.Error as error:
+            logger.error(f"Error deleting old correlations: {error}")
+            return False
 
 
 db = BotDatabase()

@@ -1,4 +1,5 @@
 import asyncio
+import aiohttp
 import requests
 
 import pandas as pd
@@ -8,6 +9,7 @@ from loguru import logger
 from bs4 import BeautifulSoup
 
 from settings import MOEX_COLUMNS
+from functools import lru_cache
 
 
 # "https://www.cbr.ru/scripts/XML_daily.asp" или "https://www.cbr-xml-daily.ru/latest.js"- курс валют
@@ -95,22 +97,71 @@ async def get_stock_data(tickers: list, days: int = 90) -> pd.DataFrame or None:
                 else:
                     logger.warning(f"Колонка CLOSE не найдена для тикера {ticker}")
             await asyncio.sleep(0.1)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Ошибка запроса для {ticker}: {e}")
-        except Exception as e:
-            logger.error(f"Общая ошибка для {ticker}: {e}")
+        except requests.exceptions.RequestException as error:
+            logger.error(f"Ошибка запроса для {ticker}: {error}")
     if not data_dict:
         return None
-    try:
-        combined_df = pd.concat(data_dict.values(), axis=1)
-        combined_df = combined_df.ffill().dropna()
-        if len(combined_df) < 2:
-            logger.warning("Недостаточно данных для расчета корреляции")
-            return None
-        return combined_df
-    except Exception as e:
-        logger.error(f"Ошибка при объединении данных: {e}")
+    combined_df = pd.concat(data_dict.values(), axis=1)
+    combined_df = combined_df.ffill().dropna()
+    if len(combined_df) < 2:
+        logger.warning("Недостаточно данных для расчета корреляции")
         return None
+    return combined_df
+
+
+@lru_cache(maxsize=1)
+@logger.catch()
+async def get_all_tickers() -> list:
+    url = "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json"
+    params = {'iss.meta': 'off'}
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            if response.status == 200:
+                data = await response.json()
+                securities = data['securities']['data']
+                tickers = [sec[0] for sec in securities if sec[1] == 'TQBR']
+                return tickers
+            else:
+                logger.error(f"Ошибка получения тикеров: {response.status}")
+                return []
+
+
+async def get_all_stocks_data(days: int = 90) -> list[pd.DataFrame] or None:
+    tickers = await get_all_tickers()
+    if not tickers:
+        return None
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
+    data_dict = {}
+    successful_tickers = []
+    async with aiohttp.ClientSession() as session:
+        for ticker in tickers:
+            url = f"https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/{ticker}.json"
+            params = {
+                'from': start_date.strftime('%Y-%m-%d'),
+                'till': end_date.strftime('%Y-%m-%d'),
+                'iss.meta': 'off'
+            }
+            async with session.get(url, params=params, timeout=30) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    history_data = data['history']['data']
+                    if history_data:
+                        df = pd.DataFrame(history_data, columns=MOEX_COLUMNS)
+                        if 'CLOSE' in df.columns:
+                            df['TRADEDATE'] = pd.to_datetime(df['TRADEDATE'])
+                            df.set_index('TRADEDATE', inplace=True)
+                            df['CLOSE'] = pd.to_numeric(df['CLOSE'], errors='coerce')
+                            df = df[['CLOSE']].rename(columns={'CLOSE': ticker}).dropna()
+                            if not df.empty and len(df) > 10:  # Минимум 10 точек
+                                data_dict[ticker] = df
+                                successful_tickers.append(ticker)
+            await asyncio.sleep(0.1)
+    if not data_dict:
+        return None
+    combined_df = pd.concat(data_dict.values(), axis=1)
+    combined_df = combined_df.ffill().dropna()
+    return combined_df
 
 
 @logger.catch()

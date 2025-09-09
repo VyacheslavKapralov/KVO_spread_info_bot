@@ -9,7 +9,8 @@ def main_menu():
         InlineKeyboardButton(text='Получить информацию по спреду', callback_data='spread_info'),
         InlineKeyboardButton(text='Установить оповещения по спреду', callback_data='set_alerts'),
         InlineKeyboardButton(text='Вывести список работающих мониторингов', callback_data='list_monitors'),
-        InlineKeyboardButton(text='Проверить корреляцию инструментов', callback_data='correlation'),
+        InlineKeyboardButton(text='Рассчитать корреляцию инструментов', callback_data='correlation'),
+        InlineKeyboardButton(text='Вывести историю корреляции инструментов', callback_data='correlation_history'),
     )
 
 
@@ -150,10 +151,36 @@ def settings_edit_menu():
 
 def correlation_menu():
     return InlineKeyboardMarkup(row_width=2).add(
+        InlineKeyboardButton("Выбрать тикеры", callback_data="correlation_custom"),
+        InlineKeyboardButton("Все акции", callback_data="correlation_all")
+    )
+
+
+def correlation_months():
+    return InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(text="1 месяц", callback_data='1_month'),
         InlineKeyboardButton(text="3 месяца", callback_data='3_month'),
         InlineKeyboardButton(text="6 месяцев", callback_data='6_month'),
         InlineKeyboardButton(text="1 год", callback_data='1_year'),
+    )
+
+
+def correlation_all_menu():
+    keyboard = InlineKeyboardMarkup(row_width=2).add(
+        InlineKeyboardButton("1 месяц", callback_data="all_1_month"),
+        InlineKeyboardButton("3 месяца", callback_data="all_3_month"),
+        InlineKeyboardButton("6 месяцев", callback_data="all_6_month"),
+        InlineKeyboardButton("1 год", callback_data="all_1_year")
+    )
+    return keyboard
+
+
+def correlation_database():
+    return InlineKeyboardMarkup(row_width=2).add(
+        InlineKeyboardButton("1 месяц", callback_data="saved_30"),
+        InlineKeyboardButton("3 месяца", callback_data="saved_90"),
+        InlineKeyboardButton("6 месяцев", callback_data="saved_180"),
+        InlineKeyboardButton("1 год", callback_data="saved_365")
     )
 
 

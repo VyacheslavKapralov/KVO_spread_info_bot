@@ -45,6 +45,7 @@ class MonitoringControl(StatesGroup):
 class CorrelationStates(StatesGroup):
     waiting_for_tickers = State()
     waiting_for_period = State()
+    waiting_for_all_period = State()
 
 
 if __name__ == '__main__':
