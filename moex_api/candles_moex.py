@@ -65,4 +65,4 @@ def clean_dict(data: dict, keys_to_remove: list) -> dict:
 
 
 if __name__ == '__main__':
-    logger.info('Running get_data_moex.py from module utils')
+    logger.info('Running get_data_moex.py from module moex_api')

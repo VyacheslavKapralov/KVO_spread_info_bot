@@ -18,6 +18,7 @@ from telegram_api.handlers import (
     get_spread_moex,
     set_alerts,
     admin_panel,
+    correlation,
 )
 
 
@@ -58,6 +59,7 @@ async def main(_):
             await get_spread_moex.register_handlers_command_spread(dp)
             await set_alerts.register_handlers_alerts(dp)
             await admin_panel.register_handlers_admin_panel_commands(dp)
+            await correlation.register_correlation_handlers(dp)
             logger.success('Бот запущен')
             break
         except exceptions.NetworkError as error:

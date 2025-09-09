@@ -1,6 +1,8 @@
 import asyncio
 import requests
 
+import pandas as pd
+
 from datetime import datetime, timedelta
 from loguru import logger
 from bs4 import BeautifulSoup
@@ -62,6 +64,45 @@ async def get_ticker_data(ticker: str) -> dict or None:
         count += 1
         logger.debug(f"Повтор получения данных инструмента от МОЕХ. Количество попыток - {count}")
         await asyncio.sleep(5)
+
+
+@logger.catch()
+async def get_stock_data(tickers: list, days: int = 90) -> pd.DataFrame or None:
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
+    data_dict = {}
+    for ticker in tickers:
+        try:
+            url = f"https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/{ticker}.json"
+            params = {
+                'from': start_date.strftime('%Y-%m-%d'),
+                'till': end_date.strftime('%Y-%m-%d'),
+                'iss.meta': 'off'
+            }
+            response = requests.get(url=url, params=params)
+            response.raise_for_status()
+            data = await response.json()
+            history_data = data['history']['data']
+            if history_data:
+                df = pd.DataFrame(history_data)
+                df['TRADEDATE'] = pd.to_datetime(df['TRADEDATE'])
+                df.set_index('TRADEDATE', inplace=True)
+                df = df[['CLOSE']].rename(columns={'CLOSE': ticker})
+                data_dict[ticker] = df
+        except ConnectionResetError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
+        except TimeoutError as error:
+            logger.error(f"Error - {error}: {error.with_traceback()}")
+        except requests.HTTPError as error:
+            logger.error(
+                f"HTTP error occurred: {error}\nStatus code: {error.response.status_code} - "
+                f"Response: {error.response.text}"
+            )
+    if not data_dict:
+        return None
+    combined_df = pd.concat(data_dict.values(), axis=1)
+    combined_df = combined_df.ffill().dropna()
+    return combined_df
 
 
 @logger.catch()
@@ -149,4 +190,4 @@ async def get_exchange_rate_soup(ticker: str) -> float or None:
 
 
 if __name__ == '__main__':
-    logger.info('Running get_data_moex.py from module utils')
+    logger.info('Running get_data_moex.py from module moex_api')

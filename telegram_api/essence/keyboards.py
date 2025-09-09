@@ -9,6 +9,7 @@ def main_menu():
         InlineKeyboardButton(text='Получить информацию по спреду', callback_data='spread_info'),
         InlineKeyboardButton(text='Установить оповещения по спреду', callback_data='set_alerts'),
         InlineKeyboardButton(text='Вывести список работающих мониторингов', callback_data='list_monitors'),
+        InlineKeyboardButton(text='Проверить корреляцию инструментов', callback_data='correlation'),
     )
 
 
@@ -144,6 +145,12 @@ def settings_edit_menu():
     for category in categories:
         keyboard.add(InlineKeyboardButton(category, callback_data=f"edit_category-{category}"))
     keyboard.add(InlineKeyboardButton(text="Назад", callback_data="back_to_admin"))
+    return keyboard
+
+
+def correlation_menu():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add("1 месяц", "3 месяца", "6 месяцев", "1 год")
     return keyboard
 
 

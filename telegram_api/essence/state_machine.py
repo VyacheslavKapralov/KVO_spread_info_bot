@@ -42,5 +42,10 @@ class MonitoringControl(StatesGroup):
     del_monitoring = State()
 
 
+class CorrelationStates(StatesGroup):
+    waiting_for_tickers = State()
+    waiting_for_period = State()
+
+
 if __name__ == '__main__':
     logger.info('Running state_machine.py from module telegram_api/essence')
