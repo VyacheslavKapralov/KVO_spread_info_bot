@@ -131,13 +131,13 @@ async def command_history(message: types.Message):
         return await message.answer(bot_answers.not_info_database())
     if history_line:
         for elem in history_line[-10:]:
-            await message.answer(bot_answers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
+            await message.answer(bot_answers.info_signal_database(elem[0], elem[3], elem[1], elem[2]))
     if history_bollinger:
         for elem in history_bollinger[-10:]:
-            await message.answer(bot_answers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
+            await message.answer(bot_answers.info_signal_database(elem[0], elem[3], elem[1], elem[2]))
     if history_fair_spread:
         for elem in history_fair_spread[-10:]:
-            await message.answer(bot_answers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
+            await message.answer(bot_answers.info_signal_database(elem[0], elem[3], elem[1], elem[2]))
     return None
 
 
