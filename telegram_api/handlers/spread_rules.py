@@ -25,6 +25,7 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
     count = 3
     in_alert_zone = False
     while True:
+        logger.info(in_alert_zone)
         if not await spread_monitor.is_monitor_active(message.from_user.id, monitor_id):
             logger.info(f"Мониторинг {monitor_id} остановлен")
             return
@@ -39,10 +40,9 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
                 await send_signal_line(message, tickers, spread, spread_type, min_line=min_spread, max_line=max_spread)
             if in_alert_zone and min_spread < spread < max_spread:
                 in_alert_zone = False
-            if in_alert_zone:
-                await asyncio.sleep(15)
+                await asyncio.sleep(60)
             else:
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(15)
         except (FigiRetrievalError, DataRetrievalError) as error:
             logger.error(f"Error: {error}. {error.message}")
             count -= 1
@@ -84,6 +84,7 @@ async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, 
                 data_frame = await add_dataframe_spread_bb(time_frame, coefficients, bollinger_deviation,
                                                            bollinger_period, tickers, spread_type)
                 spread = await calculate_spread(coefficients, spread_type, tickers)
+                await asyncio.sleep(30)
             if first_condition and (spread > data_frame['BBL'].iloc[-1] or spread < data_frame['BBU'].iloc[-1]):
                 first_condition = False
                 plot = await add_plot_spread(data_frame, f"{' '.join(tickers)}")
