@@ -11,7 +11,7 @@ def main_menu():
         InlineKeyboardButton(text='Оповещения по спреду', callback_data='set_alerts'),
         InlineKeyboardButton(text='Список работающих мониторингов', callback_data='list_monitors'),
         InlineKeyboardButton(text='Корреляция инструментов', callback_data='correlation'),
-        InlineKeyboardButton(text='Историю корреляции инструментов', callback_data='correlation_history'),
+        InlineKeyboardButton(text='История корреляции инструментов', callback_data='correlation_history'),
     )
 
 
