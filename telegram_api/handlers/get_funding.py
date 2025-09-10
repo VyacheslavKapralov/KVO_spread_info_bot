@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from loguru import logger
 
-from telegram_api.essence.answers_bot import BotAnswers
+from telegram_api.essence.answers_bot import bot_answers
 from telegram_api.essence.keyboards import menu_expiring_futures, menu_direction_position
 from telegram_api.essence.state_machine import MainInfo
 from utils.calculate_funding import calculate_funding
@@ -10,10 +10,10 @@ from utils.calculate_spread import get_price_for_figi
 from utils.decorators import check_int
 
 
-async def get_funding(callback: types.CallbackQuery, state: FSMContext):
+async def get_funding(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.volume_position.set()
-    await callback.message.answer(BotAnswers.position())
+    await callback.message.answer(bot_answers.position())
 
 
 @check_int
@@ -21,14 +21,14 @@ async def set_position(message: types.Message, state: FSMContext):
     await MainInfo.direction_position.set()
     async with state.proxy() as data:
         data['position'] = int(message.text)
-    await message.answer(BotAnswers.direction_position(), reply_markup=menu_direction_position())
+    await message.answer(bot_answers.direction_position(), reply_markup=menu_direction_position())
 
 
 async def set_direction_position(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     async with state.proxy() as data:
         data['direction_position'] = callback.data
-    await callback.message.answer(BotAnswers.set_direction_position(callback.data, data['tickers']))
+    await callback.message.answer(bot_answers.set_direction_position(callback.data, data['tickers']))
     await set_funding(callback.message, state)
 
 
@@ -62,7 +62,7 @@ async def sending_funding(message: types.Message, data: dict):
             result = (funding_first_ticker + funding_last_ticker * last_price_last_ticker) * volume_position
             volume_average_ticker = volume_position * last_price_last_ticker
             result += data['funding'][1][1] * volume_average_ticker
-    await message.answer(BotAnswers().result_calculation_funding(round(result, 2), ' '.join(data['tickers'])),
+    await message.answer(bot_answers.result_calculation_funding(round(result, 2), ' '.join(data['tickers'])),
                          reply_markup=menu_expiring_futures())
 
 

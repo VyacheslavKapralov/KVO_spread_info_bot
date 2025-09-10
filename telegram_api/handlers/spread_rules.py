@@ -6,7 +6,7 @@ from aiogram import types
 from loguru import logger
 
 from database.database_bot import db
-from telegram_api.essence.answers_bot import BotAnswers
+from telegram_api.essence.answers_bot import bot_answers
 from telegram_api.essence.keyboards import back_main_menu
 from tinkoff_investments.exceptions import FigiRetrievalError, DataRetrievalError
 from utils.calculate_spread import calculate_spread
@@ -29,7 +29,7 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
             logger.info(f"Мониторинг {monitor_id} остановлен")
             return
         if count == 0:
-            await message.answer(BotAnswers.no_exchange_data())
+            await message.answer(bot_answers.no_exchange_data())
             await asyncio.sleep(60)
             count = 3
         try:
@@ -70,7 +70,7 @@ async def signal_bb(data: dict, callback: types.CallbackQuery, monitor_id: str, 
             logger.info(f"Мониторинг {monitor_id} остановлен")
             return
         if count == 0:
-            await callback.message.answer(BotAnswers.no_exchange_data())
+            await callback.message.answer(bot_answers.no_exchange_data())
             await asyncio.sleep(60)
             count = 3
         try:
@@ -110,7 +110,7 @@ async def signal_deviation_fair_spread(data: dict, message: types.Message, monit
             logger.info(f"Мониторинг {monitor_id} остановлен")
             return
         if count == 0:
-            await message.answer(BotAnswers.no_exchange_data())
+            await message.answer(bot_answers.no_exchange_data())
             await asyncio.sleep(60)
             count = 3
         try:
@@ -139,8 +139,7 @@ async def send_signal_line(message: types.Message, tickers: list, spread: float,
         ending_string = f' = {spread}%'
     info = f"Спред: {spread_formula} {ending_string} пересек одну из линий: [{min_line} --- {max_line}]"
     table_name = 'bot_lines_signals'
-    await message.answer(BotAnswers.lines_signal_answer(info),
-                         reply_markup=back_main_menu())
+    await message.answer(bot_answers.lines_signal_answer(info), reply_markup=back_main_menu())
     await db.db_write(
         date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         table_name=table_name,
@@ -163,7 +162,7 @@ async def send_signal_bb(callback: types.CallbackQuery, data_frame: pd.DataFrame
     table_name = 'bot_bb_signals'
     await callback.message.answer_photo(
         photo=plot,
-        caption=f"{BotAnswers.bollinger_bands_signal_answer(info)}",
+        caption=f"{bot_answers.bollinger_bands_signal_answer(info)}",
         reply_markup=back_main_menu()
     )
     await db.db_write(
@@ -185,7 +184,7 @@ async def send_signal_deviation_fair_spread(message: types.Message, tickers: lis
         ending_string = f' = {spread}%'
     info = f"Спред: {spread_formula} {ending_string} отклонился от справедливого спреда = {fair_spread}"
     table_name = 'bot_deviation_fair_spread_signals'
-    await message.answer(BotAnswers.deviation_fair_spread_signal_answer(info), reply_markup=back_main_menu())
+    await message.answer(bot_answers.deviation_fair_spread_signal_answer(info), reply_markup=back_main_menu())
     await db.db_write(
         date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         table_name=table_name,

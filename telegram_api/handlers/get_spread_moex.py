@@ -2,16 +2,16 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from loguru import logger
 
-from telegram_api.essence.answers_bot import BotAnswers
-from telegram_api.essence.state_machine import MainInfo
+from telegram_api.essence.answers_bot import bot_answers
 from telegram_api.essence.keyboards import menu_spread_type, menu_expiring_futures, menu_futures_and_stock
+from telegram_api.essence.state_machine import MainInfo
 from utils.calculate_spread import calculate_spread
 
 
 async def get_spread_moex(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.spread_type.set()
-    await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
+    await callback.message.answer(text=bot_answers.spread_type(), reply_markup=menu_spread_type())
 
 
 async def set_spread_type(callback: types.CallbackQuery, state: FSMContext):
@@ -33,9 +33,9 @@ async def sending_spread(callback: types.CallbackQuery, data):
         reply_markup = menu_expiring_futures
     else:
         reply_markup = menu_futures_and_stock
-    await callback.message.answer(
-        BotAnswers().result_calculation_indicator(data['spread'], 'Спред', data['tickers'],
-                                                      data['spread_type']), reply_markup=reply_markup())
+    await callback.message.answer(bot_answers.result_calculation_indicator(data['spread'], 'Спред', data['tickers'],
+                                                                           data['spread_type']),
+                                  reply_markup=reply_markup())
 
 
 async def register_handlers_command_spread(dp: Dispatcher):

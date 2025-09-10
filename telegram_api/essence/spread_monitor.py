@@ -70,4 +70,4 @@ def generate_monitor_id(tickers: list, strategy: str) -> str:
 
 
 if __name__ == '__main__':
-    logger.info('Running spread_monitor.py from module telegram_api/handlers')
+    logger.info('Running spread_monitor.py from module telegram_api/essence')

@@ -5,19 +5,19 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from loguru import logger
 
-from database.database_bot import BotDatabase
+from database.database_bot import db
 from moex_api.search_current_ticker import get_ticker
-from telegram_api.essence.answers_bot import BotAnswers
+from telegram_api.essence.answers_bot import bot_answers
 from telegram_api.essence.keyboards import (main_menu, menu_expiring_futures, menu_futures_and_stock,
                                             menu_instruments)
 from telegram_api.essence.state_machine import MainInfo, Alert
 
 
 async def command_start(message: types.Message):
-    user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
+    user_db = await db.get_user('user_name', 'allowed_ids')
     if user_db is None or message.from_user.username not in user_db:
         logger.warning(f"Попытка подключиться к боту: {message.from_user.username} id: {message.from_user.id}")
-        await BotDatabase().db_write(
+        await db.db_write(
             date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             table_name='incoming_ids',
             user_name=message.from_user.username,
@@ -25,44 +25,47 @@ async def command_start(message: types.Message):
             info='command_start'
         )
         return
-    await message.answer(BotAnswers().start_message(message.from_user.first_name), reply_markup=main_menu())
+    await message.answer(bot_answers.start_message(message.from_user.first_name), reply_markup=main_menu())
 
 
 async def command_main_menu(message: types.Message):
-    await message.answer(BotAnswers().main_menu(), reply_markup=main_menu())
+    await message.answer(bot_answers.main_menu(), reply_markup=main_menu())
 
 
 async def command_main_menu_callback(callback: types.CallbackQuery):
-    await callback.message.answer(BotAnswers().main_menu(), reply_markup=main_menu())
+    await callback.message.answer(bot_answers.main_menu(), reply_markup=main_menu())
 
 
 async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await MainInfo.type_info.set()
+    data_parts = callback.data.split(';')
+    group_name = data_parts[0]
+    pair_index = int(data_parts[1])
+    pairs = await db.get_pairs(group_name)
+    pair_list = pairs[group_name]
+    symbols, coefficients = pair_list[pair_index]
     keyboard = menu_futures_and_stock()
     async with state.proxy() as data:
         data['tickers'] = []
         data['expiring_futures'] = False
-        data['coefficients'] = callback.data.split(';')[1].strip('()').replace(' ', '').split(',')
-        tickers = callback.data.split(';')[0]
-        for elem in tickers.split('_'):
-            if len(elem) == 2:
+        data['coefficients'] = coefficients
+        for elem in symbols:
+            if group_name != 'stocks':
                 data['expiring_futures'] = True
                 keyboard = menu_expiring_futures()
             ticker = await get_ticker(elem)
-            if not ticker:
-                raise
             data['tickers'].append(ticker)
-        await callback.message.answer(BotAnswers.what_needs_sent(' '.join(data['tickers'])), reply_markup=keyboard)
+        await callback.message.answer(bot_answers.what_needs_sent(data['tickers']), reply_markup=keyboard)
 
 
 async def command_get_info_spread(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
-    user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
+    user_db = await db.get_user('user_name', 'allowed_ids')
     if user_db is None or callback.from_user.username not in user_db:
         logger.warning(f"Попытка подключиться к боту: {callback.from_user.username} "
                        f"id: {callback.from_user.id}")
-        await BotDatabase().db_write(
+        await db.db_write(
             date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             table_name='incoming_ids',
             user_name=callback.from_user.username,
@@ -75,20 +78,20 @@ async def command_get_info_spread(callback: types.CallbackQuery, state: FSMConte
         await state.finish()
     await MainInfo.type_ticker.set()
     if callback.data == 'set_alerts':
-        text = BotAnswers.set_alert()
+        await callback.message.answer(bot_answers.set_alert())
     else:
-        text = BotAnswers.get_info_spread()
-    await callback.message.answer(text)
-    await callback.message.answer(BotAnswers.command_back_main_menu(), reply_markup=await menu_instruments())
+        await callback.message.answer(bot_answers.get_info_spread())
+    await callback.message.answer(bot_answers.command_back_main_menu())
+    await menu_instruments(callback.message)
 
 
 async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
-    user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
+    user_db = await db.get_user('user_name', 'allowed_ids')
     if user_db is None or callback.from_user.username not in user_db:
         logger.warning(f"Попытка подключиться к боту: {callback.from_user.username} "
                        f"id: {callback.from_user.id}")
-        await BotDatabase().db_write(
+        await db.db_write(
             date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             table_name='incoming_ids',
             user_name=callback.from_user.username,
@@ -101,18 +104,19 @@ async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext
         await state.finish()
     await Alert.tickers.set()
     if callback.data == 'set_alerts':
-        text = BotAnswers.set_alert()
+        text = bot_answers.set_alert()
     else:
-        text = BotAnswers.get_info_spread()
+        text = bot_answers.get_info_spread()
     await callback.message.answer(text)
-    await callback.message.answer(BotAnswers.command_alerts(), reply_markup=await menu_instruments())
+    await callback.message.answer(bot_answers.command_alerts())
+    await menu_instruments(callback.message)
 
 
 async def command_history(message: types.Message):
-    user_db = await BotDatabase().get_user('user_name', 'allowed_ids')
+    user_db = await db.get_user('user_name', 'allowed_ids')
     if user_db is None or message.from_user.username not in user_db:
         logger.warning(f"Попытка подключиться к боту: {message.from_user.username} id: {message.from_user.id}")
-        await BotDatabase().db_write(
+        await db.db_write(
             date_time=f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             table_name='incoming_ids',
             user_name=message.from_user.username,
@@ -120,20 +124,20 @@ async def command_history(message: types.Message):
             info='command_start'
         )
         return None
-    history_line = await BotDatabase().db_read('bot_lines_signals', message.from_user.username)
-    history_bollinger = await BotDatabase().db_read('bot_bb_signals', message.from_user.username)
-    history_fair_spread = await BotDatabase().db_read('bot_deviation_fair_spread_signals', message.from_user.username)
+    history_line = await db.db_read('bot_lines_signals', message.from_user.username)
+    history_bollinger = await db.db_read('bot_bb_signals', message.from_user.username)
+    history_fair_spread = await db.db_read('bot_deviation_fair_spread_signals', message.from_user.username)
     if not history_line and not history_bollinger:
-        return await message.answer(BotAnswers.not_info_database())
+        return await message.answer(bot_answers.not_info_database())
     if history_line:
         for elem in history_line[-10:]:
-            await message.answer(BotAnswers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
+            await message.answer(bot_answers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
     if history_bollinger:
         for elem in history_bollinger[-10:]:
-            await message.answer(BotAnswers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
+            await message.answer(bot_answers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
     if history_fair_spread:
         for elem in history_fair_spread[-10:]:
-            await message.answer(BotAnswers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
+            await message.answer(bot_answers.info_signal_database(elem[1], elem[4], elem[2], elem[3]))
     return None
 
 

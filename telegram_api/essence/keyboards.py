@@ -1,4 +1,5 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram import types
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from loguru import logger
 
 from database.database_bot import db
@@ -6,11 +7,11 @@ from database.database_bot import db
 
 def main_menu():
     return InlineKeyboardMarkup(row_width=1).add(
-        InlineKeyboardButton(text='Получить информацию по спреду', callback_data='spread_info'),
-        InlineKeyboardButton(text='Установить оповещения по спреду', callback_data='set_alerts'),
-        InlineKeyboardButton(text='Вывести список работающих мониторингов', callback_data='list_monitors'),
-        InlineKeyboardButton(text='Рассчитать корреляцию инструментов', callback_data='correlation'),
-        InlineKeyboardButton(text='Вывести историю корреляции инструментов', callback_data='correlation_history'),
+        InlineKeyboardButton(text='Информация по спреду', callback_data='spread_info'),
+        InlineKeyboardButton(text='Оповещения по спреду', callback_data='set_alerts'),
+        InlineKeyboardButton(text='Список работающих мониторингов', callback_data='list_monitors'),
+        InlineKeyboardButton(text='Корреляция инструментов', callback_data='correlation'),
+        InlineKeyboardButton(text='Историю корреляции инструментов', callback_data='correlation_history'),
     )
 
 
@@ -18,20 +19,29 @@ def back_main_menu():
     return ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('/back_main_menu'))
 
 
-async def menu_instruments():
-    keyboard = InlineKeyboardMarkup()
+async def menu_instruments(message: types.Message):
     pairs = await db.get_pairs_formatted()
     if not pairs:
         await db.initialize_default_pairs()
         pairs = await db.get_pairs_formatted()
-
-    for type_tool, pair_list in pairs.items():
-        keyboard.add(InlineKeyboardButton(text=type_tool, callback_data="None"))
+    for group_name, pair_list in pairs.items():
+        if group_name == 'perpetual':
+            group_name_text = 'Фьюч. валюты: квартальные к вечным'
+        elif group_name == 'gold':
+            group_name_text = 'Золото'
+        elif group_name == 'stock_future':
+            group_name_text = 'Фьюч. акций: квартальные к вечным'
+        elif group_name == 'synthetic_spot':
+            group_name_text = 'Синтетические валюты'
+        elif group_name == 'stocks':
+            group_name_text = 'Акции'
+        else:
+            continue
+        keyboard = InlineKeyboardMarkup()
         row = []
-        for symbols, coefficients in pair_list:
+        for pair_index, (symbols, coefficients) in enumerate(pair_list):
             text_button = ' '.join(symbols)
-            coeffs_str = str(coefficients).replace(' ', '')
-            callback_data = f"{text_button.replace(' ', '_')};{coeffs_str};{type_tool}"
+            callback_data = f"{group_name};{pair_index}"
             button = InlineKeyboardButton(text=text_button, callback_data=callback_data)
             row.append(button)
             if len(row) == 2:
@@ -39,8 +49,7 @@ async def menu_instruments():
                 row = []
         if row:
             keyboard.add(*row)
-
-    return keyboard
+        await message.answer(f"<b>{group_name_text}</b>", parse_mode="HTML", reply_markup=keyboard)
 
 
 def menu_expiring_futures():
@@ -151,7 +160,7 @@ def settings_edit_menu():
 
 def correlation_menu():
     return InlineKeyboardMarkup(row_width=2).add(
-        InlineKeyboardButton("Выбрать тикеры", callback_data="correlation_custom"),
+        InlineKeyboardButton("Ввести тикеры", callback_data="correlation_custom"),
         InlineKeyboardButton("Все акции", callback_data="correlation_all")
     )
 
@@ -185,4 +194,4 @@ def correlation_database():
 
 
 if __name__ == '__main__':
-    logger.info('Running keyboards.py from module telegram_api/handlers')
+    logger.info('Running keyboards.py from module telegram_api/essence')

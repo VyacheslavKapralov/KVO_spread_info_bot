@@ -116,24 +116,24 @@ class BotDatabase:
 
     async def initialize_default_pairs(self):
         default_pairs = {
-            'Валюта: вечные к квартальным': [
+            'perpetual': [
                 (('CR', 'CNYRUBF'), (1, 1)),
                 (('Eu', 'EURRUBF'), (0.001, 1)),
                 (('Si', 'USDRUBF'), (0.001, 1)),
             ],
-            'Золото': [
+            'gold': [
                 (('GL', 'GLDRUBF'), (1, 1)),
                 (('GLDRUBF', 'Si', 'GD'), (31.1035, 0.001, 1)),
                 (('GLDRUBF', 'USDRUBF', 'GD'), (31.1035, 1, 1)),
                 (('GD', 'SV'), (1, 1))
             ],
-            'Акции: вечные к квартальным': [
+            'stock_future': [
                 (('GZ', 'GAZPF'), (0.01, 1)),
                 (('MX', 'IMOEXF'), (0.1, 1)),
                 (('SP', 'SBERF'), (0.01, 1)),
                 (('SR', 'SBERF'), (0.01, 1)),
             ],
-            'Синтетические валюты': [
+            'synthetic_spot': [
                 (('Eu', 'Si', 'ED'), (1, 1, 1)),
                 (('EURRUBF', 'USDRUBF', 'ED'), (1, 1, 1)),
                 (('Eu', 'USDRUBF', 'ED'), (0.001, 1, 1)),
@@ -143,7 +143,7 @@ class BotDatabase:
                 (('USDRUBF', 'CR', 'UC'), (1, 1, 1)),
                 (('USDRUBF', 'CNYRUBF', 'UC'), (1, 1, 1)),
             ],
-            'Акции': [
+            'stocks': [
                 (('TATN', 'TATNP'), (1, 1)),
                 (('MTLR', 'MTLRP'), (1, 1)),
                 (('RTKM', 'RTKMP'), (1, 1)),
@@ -163,8 +163,8 @@ class BotDatabase:
             ]
         }
         for group_name, pairs in default_pairs.items():
-            for i, (symbols, coefficients) in enumerate(pairs):
-                await self.save_pair(group_name, i, symbols, coefficients)
+            for num, (symbols, coefficients) in enumerate(pairs):
+                await self.save_pair(group_name, num, symbols, coefficients)
 
     async def connect_database(self):
         return sqlite3.connect(self.db_path, check_same_thread=False)
@@ -209,7 +209,6 @@ class BotDatabase:
             )
             result = cursor.fetchone()
             connect.close()
-
             if result:
                 value_str, value_type = result
                 if value_type == 'int':

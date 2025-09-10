@@ -3,16 +3,16 @@ from aiogram.dispatcher import FSMContext
 from loguru import logger
 
 from database.database_bot import db
-from telegram_api.essence.answers_bot import BotAnswers
-from telegram_api.essence.state_machine import MainInfo
+from telegram_api.essence.answers_bot import bot_answers
 from telegram_api.essence.keyboards import menu_spread_type, menu_expiring_futures, menu_futures_and_stock
+from telegram_api.essence.state_machine import MainInfo
 from utils.data_frame_pandas import calculate_ema, create_dataframe_spread
 
 
 async def get_exponential_ma(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.spread_type_ema.set()
-    await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
+    await callback.message.answer(bot_answers.spread_type(), reply_markup=menu_spread_type())
 
 
 async def set_spread_type_ema(callback: types.CallbackQuery, state: FSMContext):
@@ -39,9 +39,9 @@ async def sending_ema(callback: types.CallbackQuery, data: dict):
         reply_markup = menu_expiring_futures
     else:
         reply_markup = menu_futures_and_stock
-    await callback.message.answer(
-        BotAnswers().result_calculation_indicator(data['ema'], 'EMA', data['tickers'],
-                                                      data['spread_type']), reply_markup=reply_markup())
+    await callback.message.answer(bot_answers.result_calculation_indicator(data['ema'], 'EMA', data['tickers'],
+                                                                           data['spread_type']),
+                                  reply_markup=reply_markup())
 
 
 async def register_handlers_command_ema(dp: Dispatcher):

@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from loguru import logger
 
 from moex_api.get_data_moex import get_ticker_data
-from telegram_api.essence.answers_bot import BotAnswers
+from telegram_api.essence.answers_bot import bot_answers
 from telegram_api.essence.keyboards import menu_expiring_futures, menu_spread_type
 from telegram_api.essence.state_machine import MainInfo
 from utils.calculate_spread import calculate_spread
@@ -19,15 +19,15 @@ async def get_fair_price(callback: types.CallbackQuery, state: FSMContext):
                 if elem[0] == 'TYPE' and elem[2] == 'futures':
                     fair_price = await get_fair_price_futures_currency(ticker_data)
                     if fair_price:
-                        await callback.message.answer(BotAnswers().result_fair_price_futures(fair_price, ticker))
-    await callback.message.answer(BotAnswers().what_needs_sent(' '.join(data['tickers'])),
+                        await callback.message.answer(bot_answers.result_fair_price_futures(fair_price, ticker))
+    await callback.message.answer(bot_answers.what_needs_sent(data['tickers']),
                                   reply_markup=menu_expiring_futures())
 
 
 async def get_fair_spread(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
     await MainInfo.fair_spread_type.set()
-    await callback.message.answer(BotAnswers.spread_type(), reply_markup=menu_spread_type())
+    await callback.message.answer(bot_answers.spread_type(), reply_markup=menu_spread_type())
 
 
 async def set_spread_type_fair_spread(callback: types.CallbackQuery, state: FSMContext):
@@ -41,11 +41,9 @@ async def sending_fair_spread(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data['fair_spread'] = await get_fair_spread_futures_currency(data['tickers'], data['spread_type'])
         data['spread'] = await calculate_spread(data['coefficients'], data['spread_type'], data['tickers'])
-        await callback.message.answer(
-            BotAnswers().result_fair_spread_futures(data['fair_spread'], data['spread'], data['tickers'],
-                                                    data['spread_type']),
-            reply_markup=menu_expiring_futures()
-        )
+        await callback.message.answer(bot_answers.result_fair_spread_futures(data['fair_spread'], data['spread'],
+                                                                             data['tickers'], data['spread_type']),
+                                      reply_markup=menu_expiring_futures())
     await MainInfo.type_info.set()
 
 
