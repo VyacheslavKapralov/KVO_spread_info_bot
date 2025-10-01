@@ -103,6 +103,7 @@ async def set_type_spread_alert(callback: types.CallbackQuery, state: FSMContext
         task = asyncio.create_task(signal_bb(data, callback, monitor_id, spread_monitor))
         await spread_monitor.add_monitor(callback.from_user.id, monitor_id, task, data)
         await callback.message.answer(bot_answers.start_monitoring(monitor_id), reply_markup=back_main_menu())
+        await state.finish()
     elif data['type_alert'] == 'deviation_fair_spread':
         await Alert.deviation_fair_spread.set()
         await callback.message.answer(bot_answers.deviation_fair_spread_answer())
@@ -124,6 +125,7 @@ async def set_maximum_line_alert(message: types.Message, state: FSMContext):
     task = asyncio.create_task(signal_line(data, message, monitor_id, spread_monitor))
     await spread_monitor.add_monitor(message.from_user.id, monitor_id, task, data)
     await message.answer(bot_answers.start_monitoring(monitor_id), reply_markup=back_main_menu())
+    await state.finish()
 
 
 @check_float
@@ -134,6 +136,7 @@ async def set_deviation_fair_spread_alert(message: types.Message, state: FSMCont
     task = asyncio.create_task(signal_deviation_fair_spread(data, message, monitor_id, spread_monitor))
     await spread_monitor.add_monitor(message.from_user.id, monitor_id, task, data)
     await message.answer(bot_answers.start_monitoring(monitor_id), reply_markup=back_main_menu())
+    await state.finish()
 
 
 async def stop_monitor(message: types.Message):

@@ -25,7 +25,6 @@ async def signal_line(data: dict, message: types.Message, monitor_id: str, sprea
     count = 3
     in_alert_zone = False
     while True:
-        logger.info(in_alert_zone)
         if not await spread_monitor.is_monitor_active(message.from_user.id, monitor_id):
             logger.info(f"Мониторинг {monitor_id} остановлен")
             return
