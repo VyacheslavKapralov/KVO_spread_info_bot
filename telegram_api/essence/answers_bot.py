@@ -1,7 +1,7 @@
 import pandas as pd
 from loguru import logger
 
-from settings import TECHNICAL_SETTINGS
+from settings import TECHNICAL_SETTINGS, VALID_TIMEFRAMES
 from utils.formating_parameters import format_settings_display, format_expiration_months
 
 
@@ -442,7 +442,7 @@ class BotAnswers:
 
     @staticmethod
     def set_time_frame() -> str:
-        return "Введите желаемый тайм фрейм для индикатора."
+        return f"Выберите желаемый тайм фрейм для индикатора:\n{VALID_TIMEFRAMES}"
 
     @staticmethod
     def check_timeframe(timeframes: list) -> str:

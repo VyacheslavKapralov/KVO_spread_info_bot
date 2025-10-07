@@ -90,7 +90,6 @@ async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext
 
 
 async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMContext):
-    # await callback.message.delete()
     await MainInfo.type_info.set()
     data_parts = callback.data.split(';')
     group_name = data_parts[0]
