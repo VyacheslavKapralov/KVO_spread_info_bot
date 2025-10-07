@@ -36,29 +36,6 @@ async def command_main_menu_callback(callback: types.CallbackQuery):
     await callback.message.answer(bot_answers.main_menu(), reply_markup=main_menu())
 
 
-async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    await MainInfo.type_info.set()
-    data_parts = callback.data.split(';')
-    group_name = data_parts[0]
-    pair_index = int(data_parts[1])
-    pairs = await db.get_pairs(group_name)
-    pair_list = pairs[group_name]
-    symbols, coefficients = pair_list[pair_index]
-    keyboard = menu_futures_and_stock()
-    async with state.proxy() as data:
-        data['tickers'] = []
-        data['expiring_futures'] = False
-        data['coefficients'] = coefficients
-        for elem in symbols:
-            if group_name != 'stocks':
-                data['expiring_futures'] = True
-                keyboard = menu_expiring_futures()
-            ticker = await get_ticker(elem)
-            data['tickers'].append(ticker)
-        await callback.message.answer(bot_answers.what_needs_sent(data['tickers']), reply_markup=keyboard)
-
-
 async def command_get_info_spread(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     user_db = await db.get_user('user_name', 'allowed_ids')
@@ -110,6 +87,29 @@ async def command_enable_alerts(callback: types.CallbackQuery, state: FSMContext
     await callback.message.answer(text)
     await callback.message.answer(bot_answers.command_alerts())
     await menu_instruments(callback.message)
+
+
+async def get_tickers_at_settings(callback: types.CallbackQuery, state: FSMContext):
+    # await callback.message.delete()
+    await MainInfo.type_info.set()
+    data_parts = callback.data.split(';')
+    group_name = data_parts[0]
+    pair_index = int(data_parts[1])
+    pairs = await db.get_pairs(group_name)
+    pair_list = pairs[group_name]
+    symbols, coefficients = pair_list[pair_index]
+    keyboard = menu_futures_and_stock()
+    async with state.proxy() as data:
+        data['tickers'] = []
+        data['expiring_futures'] = False
+        data['coefficients'] = coefficients
+        for elem in symbols:
+            if group_name != 'stocks':
+                data['expiring_futures'] = True
+                keyboard = menu_expiring_futures()
+            ticker = await get_ticker(elem)
+            data['tickers'].append(ticker)
+        await callback.message.answer(bot_answers.what_needs_sent(data['tickers']), reply_markup=keyboard)
 
 
 async def command_history(message: types.Message):
