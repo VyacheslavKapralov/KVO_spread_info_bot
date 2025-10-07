@@ -139,23 +139,26 @@ async def set_deviation_fair_spread_alert(message: types.Message, state: FSMCont
     await state.finish()
 
 
-async def stop_monitor(message: types.Message):
+async def stop_monitor(message: types.Message, state: FSMContext):
     success = await spread_monitor.remove_monitor(message.from_user.id, message.text)
     if success:
         await message.answer(bot_answers.stop_monitoring(message.text), reply_markup=menu_monitor_control())
     else:
         await message.answer(bot_answers.not_monitoring(), reply_markup=menu_monitor_control())
+    await state.finish()
 
 
-async def stop_all_monitors(callback: types.CallbackQuery):
+async def stop_all_monitors(callback: types.CallbackQuery, state: FSMContext):
     count = await spread_monitor.remove_all_user_monitors(callback.from_user.id)
     await callback.message.answer(bot_answers.stop_all_monitoring(count), reply_markup=main_menu())
+    await state.finish()
 
 
-async def list_monitors(callback: types.CallbackQuery):
+async def list_monitors(callback: types.CallbackQuery, state: FSMContext):
     monitors = await spread_monitor.get_user_monitors(callback.from_user.id)
     if not monitors:
         await callback.message.answer(bot_answers.not_active_monitoring())
+        await state.finish()
         return
     await callback.message.answer(bot_answers.active_monitoring())
     for monitor_id, data in monitors.items():
@@ -163,9 +166,9 @@ async def list_monitors(callback: types.CallbackQuery):
     await callback.message.answer(bot_answers.select_action_monitoring(), reply_markup=menu_monitor_control())
 
 
-async def select_action_monitoring(callback: types.CallbackQuery):
+async def select_action_monitoring(callback: types.CallbackQuery, state: FSMContext):
     if callback.data == 'stop_all':
-        await stop_all_monitors(callback)
+        await stop_all_monitors(callback, state)
     else:
         await MonitoringControl.del_monitoring.set()
         await callback.message.answer(bot_answers.stop_one_monitor())

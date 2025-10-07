@@ -256,37 +256,6 @@ async def handle_commands_commands_db(message: types.Message, command: str, data
         await edit_command(message, data)
 
 
-async def back_admin_menu(callback: types.CallbackQuery):
-    await callback.message.answer(bot_answers.choice_action_access(), reply_markup=admin_menu())
-    await AdminPanel.what_edit.set()
-
-
-async def register_handlers_admin_panel_commands(dp: Dispatcher):
-    handlers = [
-        (admin_panel, {'commands': ['admin'], 'state': '*'}),
-        (get_all_ids_db, {'lambda': lambda c: c.data == 'get_users', 'state': AdminPanel.what_edit}),
-        (get_history_signals_admin, {'lambda': lambda c: c.data == 'get_signals', 'state': AdminPanel.what_edit}),
-        (access_bot, {'lambda': lambda c: c.data == 'access', 'state': AdminPanel.what_edit}),
-        (access_bot_get_incoming_ids, {'lambda': lambda c: c.data == 'add_user', 'state': AdminPanel.access_bot}),
-        (access_bot_get_allowed_ids, {'lambda': lambda c: c.data == 'del_user', 'state': AdminPanel.access_bot}),
-        (set_user_id, {'state': (AdminPanel.add_user, AdminPanel.del_user)}),
-        (adding_user, {'state': AdminPanel.set_user_nik}),
-        (deleting_user, {'state': AdminPanel.del_user}),
-        (stop_admin_panel, {'lambda': lambda c: c.data == 'stop_admin', 'state': '*'}),
-        (get_parameters_bot, {'lambda': lambda c: c.data == 'params', 'state': AdminPanel.what_edit}),
-        (edit_settings_start, {'lambda': lambda c: c.data == 'edit_settings', 'state': '*'}),
-        (select_setting_category,
-         {'lambda': lambda c: c.data.startswith('edit_'), 'state': AdminPanel.edit_settings_select}),
-        (edit_setting_value, {'state': AdminPanel.edit_settings_value}),
-        (back_admin_menu, {'lambda': lambda c: c.data == 'back_to_admin', 'state': '*'})
-    ]
-    for handler, params in handlers:
-        if 'lambda' in params:
-            dp.register_callback_query_handler(handler, params['lambda'], state=params['state'])
-        else:
-            dp.register_message_handler(handler, **params)
-
-
 async def add_pair(message: types.Message, data: str, pattern: str):
     group_name, pairs, coeffs = data.split(';')
     group_name = group_name.strip()
@@ -321,7 +290,7 @@ async def edit_pair(message: types.Message, data: str, pattern: str):
     content_pairs = pairs_match.group(1)
     content_coeffs = coeffs_match.group(1)
     symbols = [s.strip() for s in content_pairs.split(',')]
-    coefficients = [int(s) for s in content_coeffs.split(',')]
+    coefficients = [float(s) for s in content_coeffs.split(',')]
     if await db.save_pair(group_name, index, symbols, coefficients):
         await message.answer(bot_answers.success_update_pair(), reply_markup=settings_menu())
     else:
@@ -371,6 +340,37 @@ async def edit_command(message: types.Message, data: str):
             await message.answer(bot_answers.error_update_command(), reply_markup=settings_menu())
     else:
         await message.answer(bot_answers.error_searching_command(old_name), reply_markup=settings_menu())
+
+
+async def back_admin_menu(callback: types.CallbackQuery):
+    await callback.message.answer(bot_answers.choice_action_access(), reply_markup=admin_menu())
+    await AdminPanel.what_edit.set()
+
+
+async def register_handlers_admin_panel_commands(dp: Dispatcher):
+    handlers = [
+        (admin_panel, {'commands': ['admin'], 'state': '*'}),
+        (get_all_ids_db, {'lambda': lambda c: c.data == 'get_users', 'state': AdminPanel.what_edit}),
+        (get_history_signals_admin, {'lambda': lambda c: c.data == 'get_signals', 'state': AdminPanel.what_edit}),
+        (access_bot, {'lambda': lambda c: c.data == 'access', 'state': AdminPanel.what_edit}),
+        (access_bot_get_incoming_ids, {'lambda': lambda c: c.data == 'add_user', 'state': AdminPanel.access_bot}),
+        (access_bot_get_allowed_ids, {'lambda': lambda c: c.data == 'del_user', 'state': AdminPanel.access_bot}),
+        (set_user_id, {'state': (AdminPanel.add_user, AdminPanel.del_user)}),
+        (adding_user, {'state': AdminPanel.set_user_nik}),
+        (deleting_user, {'state': AdminPanel.del_user}),
+        (stop_admin_panel, {'lambda': lambda c: c.data == 'stop_admin', 'state': '*'}),
+        (get_parameters_bot, {'lambda': lambda c: c.data == 'params', 'state': AdminPanel.what_edit}),
+        (edit_settings_start, {'lambda': lambda c: c.data == 'edit_settings', 'state': '*'}),
+        (select_setting_category,
+         {'lambda': lambda c: c.data.startswith('edit_'), 'state': AdminPanel.edit_settings_select}),
+        (edit_setting_value, {'state': AdminPanel.edit_settings_value}),
+        (back_admin_menu, {'lambda': lambda c: c.data == 'back_to_admin', 'state': '*'})
+    ]
+    for handler, params in handlers:
+        if 'lambda' in params:
+            dp.register_callback_query_handler(handler, params['lambda'], state=params['state'])
+        else:
+            dp.register_message_handler(handler, **params)
 
 
 if __name__ == '__main__':
