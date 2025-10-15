@@ -172,12 +172,16 @@ class BotAnswers:
         return 'Укажите нижнюю границу спреда:'
 
     @staticmethod
+    def maximum_line_test_failed(max_line: str, min_line: str):
+        return f"Линия максимума равна или ниже линии минимума.\nПроверьте значения: max_line = {max_line}, min_line = {min_line}"
+
+    @staticmethod
     def deviation_fair_spread_answer() -> str:
         return 'Укажите границу отклонения справедливого спреда:'
 
     @staticmethod
     def check_float_answer(text) -> str:
-        return f'Неверное число: {text}\nДолжно быть целым или вещественным числом, а также записано через точку'
+        return f'Неверное число: {text}\nДолжно быть целым или вещественным числом.'
 
     @staticmethod
     def check_int_answer(text) -> str:

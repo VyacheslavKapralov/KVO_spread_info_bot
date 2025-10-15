@@ -13,7 +13,7 @@ from telegram_api.essence.keyboards import (menu_type_alert_futures, menu_spread
 from telegram_api.essence.spread_monitor import SpreadMonitor, generate_monitor_id
 from telegram_api.essence.state_machine import Alert, MonitoringControl
 from telegram_api.handlers.spread_rules import signal_line, signal_bb, signal_deviation_fair_spread
-from utils.decorators import check_float, check_timeframe, check_int
+from utils.decorators import check_float, check_timeframe, check_int, check_min_max_line
 
 spread_monitor = SpreadMonitor()
 
@@ -115,8 +115,7 @@ async def set_minimum_line_alert(message: types.Message, state: FSMContext):
         data['min_line'] = message.text
     await message.answer(bot_answers.grid_max_price_answer())
 
-
-@check_float
+@check_min_max_line
 async def set_maximum_line_alert(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['max_line'] = message.text
