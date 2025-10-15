@@ -32,16 +32,46 @@ class BotAnswers:
         return f"{indicator_type}: {' / '.join(tickers)} = {number}%"
 
     @staticmethod
-    def bollinger_bands_signal_answer(text: str) -> str:
-        return text
+    def bollinger_bands_signal_answer(data_frame: pd.DataFrame, spread: float, spread_type: str, tickers: list) -> str:
+        if spread_type == 'money':
+            spread_formula = f"{' - '.join(tickers)}"
+            ending_string = f' = {spread} руб.'
+        else:
+            spread_formula = f"{' / '.join(tickers)}"
+            ending_string = f' = {spread}%'
+        return (f"Спред: {spread_formula} {ending_string} пересек одну из линий Боллинджера: "
+                f"[BBL = {round(data_frame['BBL'].iloc[-1], 2)} - BBU = {round(data_frame['BBU'].iloc[-1], 2)}]")
 
     @staticmethod
-    def lines_signal_answer(text: str) -> str:
-        return text
+    def return_range_bb(data_frame: pd.DataFrame, spread: float, spread_type: str, tickers: list):
+        if spread_type == 'money':
+            spread_formula = f"{' - '.join(tickers)}"
+            ending_string = f' = {spread} руб.'
+        else:
+            spread_formula = f"{' / '.join(tickers)}"
+            ending_string = f' = {spread}%'
+        return (f"Спред: {spread_formula} {ending_string} вернулся в канал Боллинджера: "
+                f"[BBL = {round(data_frame['BBL'].iloc[-1], 2)} - BBU = {round(data_frame['BBU'].iloc[-1], 2)}]")
 
     @staticmethod
-    def deviation_fair_spread_signal_answer(text: str) -> str:
-        return text
+    def lines_signal_answer(min_line: float, max_line: float, spread: float, spread_type: str, tickers: list) -> str:
+        if spread_type == 'money':
+            spread_formula = f"{' - '.join(tickers)}"
+            ending_string = f' = {spread} руб.'
+        else:
+            spread_formula = f"{' / '.join(tickers)}"
+            ending_string = f' = {spread}%'
+        return f"Спред: {spread_formula} {ending_string} пересек одну из линий: [{min_line} --- {max_line}]"
+
+    @staticmethod
+    def deviation_fair_spread_signal_answer(fair_spread: float, spread: float, spread_type: str, tickers: list) -> str:
+        if spread_type == 'money':
+            spread_formula = f"{' - '.join(tickers)}"
+            ending_string = f' = {spread} руб.'
+        else:
+            spread_formula = f"{' / '.join(tickers)}"
+            ending_string = f' = {spread}%'
+        return f"Спред: {spread_formula} {ending_string} отклонился от справедливого спреда = {fair_spread}"
 
     @staticmethod
     def result_calculation_funding(number: float, ticker: str) -> str:
@@ -171,7 +201,7 @@ class BotAnswers:
 
     @staticmethod
     def no_exchange_data() -> str:
-        return 'Не удается получить от биржи данные по инструментам. Повторная попытка через 60 секунд.'
+        return 'Не удается получить от биржи данные по инструментам.'
 
     @staticmethod
     def not_admin() -> str:
