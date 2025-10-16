@@ -49,7 +49,7 @@ class BotAnswers:
             ending_string = f' = {spread} руб.'
         else:
             spread_formula = f"{' / '.join(tickers)}"
-            ending_string = f' = {spread}%'
+            ending_string = f'= {spread}%'
         return (f"Спред: {spread_formula} {ending_string} вернулся в канал Боллинджера: "
                 f"[BBL = {round(data_frame['BBL'].iloc[-1], 2)} - BBU = {round(data_frame['BBU'].iloc[-1], 2)}]")
 
@@ -60,7 +60,7 @@ class BotAnswers:
             ending_string = f' = {spread} руб.'
         else:
             spread_formula = f"{' / '.join(tickers)}"
-            ending_string = f' = {spread}%'
+            ending_string = f'= {spread}%'
         return f"Спред: {spread_formula} {ending_string} пересек одну из линий: [{min_line} --- {max_line}]"
 
     @staticmethod
@@ -70,7 +70,7 @@ class BotAnswers:
             ending_string = f' = {spread} руб.'
         else:
             spread_formula = f"{' / '.join(tickers)}"
-            ending_string = f' = {spread}%'
+            ending_string = f'= {spread}%'
         return f"Спред: {spread_formula} {ending_string} отклонился от справедливого спреда = {fair_spread}"
 
     @staticmethod
@@ -84,10 +84,17 @@ class BotAnswers:
     @staticmethod
     def result_fair_spread_futures(fair_spread: float, spread: float, tickers: list, spread_type: str) -> str:
         if spread_type == 'money':
-            return (f"Справедливый спред фьючерсов:\n{' - '.join(tickers)} = {fair_spread} руб.\n"
-                    f"Текущий спред: {spread} руб. Разница {round(fair_spread - spread, 3)} руб.")
-        return (f"Справедливый спред фьючерсов:\n{' / '.join(tickers)} = {fair_spread}%\n"
-                f"Текущий спред: {spread}%. Разница {round(fair_spread - spread, 3)}%")
+            spread_formula = f"{' - '.join(tickers)}"
+            fair_spread_string = f'= {fair_spread} руб.'
+            spread_string = f'{spread} руб.'
+            difference_string = f'{round(fair_spread - spread, 3)} руб.'
+        else:
+            spread_formula = f"{' / '.join(tickers)}"
+            fair_spread_string = f'= {fair_spread}%'
+            spread_string = f'{spread}%'
+            difference_string = f'{round(fair_spread - spread, 3)}%'
+        return (f"Справедливый спред фьючерсов:\n{spread_formula} {fair_spread_string}\n"
+                f"Текущий спред: {spread_string}\nРазница {difference_string}")
 
     @staticmethod
     def spread_type() -> str:
